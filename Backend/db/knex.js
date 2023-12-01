@@ -1,5 +1,6 @@
 const knex = require("knex");
 
+//Connecting to the database
 const db = knex({
   client: "pg",
   connection: {

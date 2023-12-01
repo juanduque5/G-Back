@@ -10,9 +10,13 @@ exports.postSignup = (req, res, next) => {
     error.data = errors.array();
     return next(error); // Usar return next() en lugar de throw
   }
+
+  //Obtaining info from req.body
   const email = req.body.email;
   const name = req.body.name;
   const password = req.body.password;
+
+  //Using bcrypt to hash the user's password
   bcrypt
     .hash(password, 12)
     .then((hashedpassword) => {
@@ -23,7 +27,7 @@ exports.postSignup = (req, res, next) => {
       });
     })
     .then((newUser) => {
-      // La creación del usuario fue exitosa
+      // The user was successfully created
       console.log("creado con exito", newUser);
       res
         .status(201)
