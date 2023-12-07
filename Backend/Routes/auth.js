@@ -2,8 +2,13 @@ const express = require("express");
 const authController = require("../Controllers/auth");
 const { body } = require("express-validator");
 const User = require("../Models/user");
+const isAuth = require("../middleware/is-auth");
 
 const router = express.Router();
+
+// Rutas protegidas que requieren autenticación
+//put the routes that will be authenticated under the next line
+//router.use(isAuth());
 
 //Sign up POST API ROUTER
 router.post(

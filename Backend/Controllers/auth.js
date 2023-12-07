@@ -1,6 +1,7 @@
 const User = require("../Models/user");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 exports.postSignup = (req, res, next) => {
   const errors = validationResult(req);
@@ -59,6 +60,7 @@ exports.postLogin = async (req, res, next) => {
 
     // Busca al usuario por su email en la base de datos
     const user = await User.findByEmail(email);
+    console.log("USER", user);
 
     // Si no se encuentra al usuario, lanza un error
     if (!user) {
@@ -72,15 +74,26 @@ exports.postLogin = async (req, res, next) => {
 
     // Si las contraseñas no coinciden, lanza un error
     if (!compare) {
-      const error = new Error("Invalid email or password");
+      const error = new Error("Invalid password");
       error.statusCode = 401;
       throw error;
     }
 
-    const name = user.name;
+    // const name = user.name;
+
+    const token = jwt.sign(
+      {
+        email: user.email,
+        userId: user.id,
+      },
+      "somehiddensecretsuppersecrethiddentoken",
+      { expiresIn: "1h" }
+    );
 
     // La autenticación fue exitosa
-    res.status(200).json({ message: "Login successful", name });
+    res
+      .status(200)
+      .json({ message: "Login successful", name: user.name, token: token });
   } catch (err) {
     // Manejo de errores
     if (!err.statusCode) {
