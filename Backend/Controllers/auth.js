@@ -8,7 +8,7 @@ exports.postSignup = (req, res, next) => {
     const error = new Error("Validation failed");
     error.statusCode = 422;
     error.data = errors.array();
-    return next(error); // Usar return next() en lugar de throw
+    throw error;
   }
 
   //Obtaining info from req.body

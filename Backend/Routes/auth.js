@@ -19,8 +19,11 @@ router.post(
         }
       })
       .normalizeEmail(),
-    body("password").trim().isLength({ min: 5 }),
-    body("name").trim().not().isEmpty(),
+    body("password")
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage("Password must be at least 5 characters"),
+    body("name").trim().not().isEmpty().withMessage("Name is empty"),
   ],
   authController.postSignup
 );
