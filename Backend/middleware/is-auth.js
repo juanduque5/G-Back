@@ -15,7 +15,7 @@ module.exports = (req, res, next) => {
   const token = authorizationHeader.split(" ")[1];
   let decodedToken;
   try {
-    decodedToken = jwt.verify(token, "somehiddensecretsuppersecrethiddentoken");
+    decodedToken = jwt.verify(token, "");
   } catch (err) {
     err.statusCode = 500;
     throw err;
@@ -29,3 +29,5 @@ module.exports = (req, res, next) => {
   req.name = decodedToken.name;
   next();
 };
+
+//somehiddensecretsuppersecrethiddentoken

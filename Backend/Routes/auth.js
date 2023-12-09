@@ -49,4 +49,15 @@ router.post(
   authController.postLogin
 );
 
+router.post(
+  "/reset",
+  [
+    body("email")
+      .isEmail()
+      .withMessage("Please enter a valid email")
+      .normalizeEmail(),
+  ],
+  authController.postReset
+);
+
 module.exports = router;

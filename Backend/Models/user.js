@@ -20,4 +20,11 @@ User.findByEmail = (email) => {
   return db("users").where("email", email).first();
 };
 
+User.updateReset = (email, resetToken, tokenExpiration) => {
+  return db("users").where("email", email).update({
+    resetToken: resetToken,
+    tokenExpiration: tokenExpiration,
+  });
+};
+
 module.exports = User;

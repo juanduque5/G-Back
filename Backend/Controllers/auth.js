@@ -2,43 +2,74 @@ const User = require("../Models/user");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nodemailder = require("nodemailer");
+const sendGrindTransport = require("nodemailer-sendgrid-transport");
+const crypto = require("crypto");
+const moment = require("moment");
+
+const transporter = nodemailder.createTransport(
+  sendGrindTransport({
+    auth: {
+      api_key:
+        "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",
+    },
+  })
+);
 
 exports.postSignup = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const error = new Error("Validation failed");
-    error.statusCode = 422;
-    error.data = errors.array();
-    throw error;
+    const validationError = new Error("Validation failed");
+    validationError.statusCode = 422;
+    validationError.data = errors.array();
+    throw validationError;
   }
 
-  //Obtaining info from req.body
+  // Obtaining info from req.body
   const email = req.body.email;
   const name = req.body.name;
   const password = req.body.password;
 
-  //Using bcrypt to hash the user's password
+  let newUser; // Variable para almacenar el usuario creado
+
+  // Usando bcrypt para hashear la contraseña del usuario
   bcrypt
     .hash(password, 12)
     .then((hashedpassword) => {
+      // Crear usuario con contraseña hasheada
       return User.create({
         email: email,
         name: name,
         password: hashedpassword,
       });
     })
-    .then((newUser) => {
-      // The user was successfully created
-      console.log("creado con exito", newUser);
+    .then((createdUser) => {
+      // Usuario creado con éxito
+      newUser = createdUser; // Almacenar el usuario creado para su uso posterior
+      console.log("creado con éxito", newUser);
+
+      // Enviar correo electrónico y devolver la promesa del envío del correo
+      return transporter.sendMail({
+        to: email,
+        from: "onmygrind1219@gmail.com",
+        subject: "Signup succeeded!",
+        html: "<h1>You've successfully signed up!</h1>",
+      });
+    })
+    .then(() => {
+      // Responder con éxito y el usuario creado
       res
         .status(201)
         .json({ message: "User created successfully", user: newUser });
     })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
+    .catch((error) => {
+      console.error(error);
+
+      // Manejar el error de manera centralizada
+      if (!error.statusCode) {
+        error.statusCode = 500;
       }
-      next(err);
+      next(error);
     });
 };
 
@@ -81,6 +112,7 @@ exports.postLogin = async (req, res, next) => {
 
     // const name = user.name;
 
+    //Creatigng jwt token for authorization
     const token = jwt.sign(
       {
         email: user.email,
@@ -100,5 +132,72 @@ exports.postLogin = async (req, res, next) => {
       err.statusCode = 500;
     }
     next(err);
+  }
+};
+
+//Reset
+exports.postReset = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const validationError = new Error("Validation failed");
+      validationError.statusCode = 422;
+      validationError.data = errors.array();
+      throw validationError;
+    }
+
+    const buffer = await new Promise((resolve, reject) => {
+      crypto.randomBytes(32, (err, buf) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(buf);
+        }
+      });
+    });
+
+    const token = buffer.toString("hex");
+    const user = await User.findByEmail(req.body.email);
+
+    if (!user) {
+      const error = new Error("Invalid email or password");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    user.resetToken = token;
+    user.tokenExpiration = moment().add(1, "hour").format();
+
+    await User.updateReset(
+      req.body.email,
+      user.resetToken,
+      user.tokenExpiration
+    );
+
+    try {
+      await transporter.sendMail({
+        to: req.body.email,
+        from: "onmygrind1219@gmail.com",
+        subject: "Resetting password!",
+        html: `
+          <p> You requested a password reset </p>
+          <p>Click this <a href="http://localhost:3000/Reset/${token}">link</p>
+        `,
+      });
+      // Envío de correo exitoso
+    } catch (mailError) {
+      console.error("Error sending email:", mailError);
+    }
+    // Otro código relacionado con el manejo del restablecimiento de contraseña, si es necesario
+
+    res.status(200).json({ message: "Reset token updated successfully" });
+  } catch (error) {
+    console.error(error);
+
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
   }
 };
