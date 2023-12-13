@@ -10,8 +10,7 @@ const moment = require("moment");
 const transporter = nodemailder.createTransport(
   sendGrindTransport({
     auth: {
-      api_key:
-        "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",
+      api_key: "",
     },
   })
 );
