@@ -60,4 +60,17 @@ router.post(
   authController.postReset
 );
 
+router.get("/reset-password/:token", authController.getResetPassword);
+
+router.put(
+  "/password-update/:id",
+  [
+    body("password")
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage("Password must be at least 5 characters"),
+  ],
+  authController.putPasswordUpdate
+);
+
 module.exports = router;

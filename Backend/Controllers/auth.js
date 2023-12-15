@@ -10,7 +10,8 @@ const moment = require("moment");
 const transporter = nodemailder.createTransport(
   sendGrindTransport({
     auth: {
-      api_key: "",
+      api_key:
+        "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",
     },
   })
 );
@@ -165,7 +166,7 @@ exports.postReset = async (req, res, next) => {
     }
 
     user.resetToken = token;
-    user.tokenExpiration = moment().add(1, "hour").format();
+    user.tokenExpiration = new Date(Date.now() + 3600000).toISOString();
 
     await User.updateReset(
       req.body.email,
@@ -180,7 +181,7 @@ exports.postReset = async (req, res, next) => {
         subject: "Resetting password!",
         html: `
           <p> You requested a password reset </p>
-          <p>Click this <a href="http://localhost:3000/Reset/${token}">link</p>
+          <p>Click this <a href="http://localhost:3000/Reset-Password/${token}">link</p>
         `,
       });
       // Envío de correo exitoso
@@ -189,7 +190,10 @@ exports.postReset = async (req, res, next) => {
     }
     // Otro código relacionado con el manejo del restablecimiento de contraseña, si es necesario
 
-    res.status(200).json({ message: "Reset token updated successfully" });
+    res.status(200).json({
+      message:
+        "An email has been sent to you with a link  to reset your password",
+    });
   } catch (error) {
     console.error(error);
 
@@ -198,5 +202,62 @@ exports.postReset = async (req, res, next) => {
     }
 
     next(error);
+  }
+};
+
+//validating link with token and expiration time
+exports.getResetPassword = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const validationError = new Error("Validation failed");
+    validationError.statusCode = 422;
+    validationError.data = errors.array();
+    throw validationError;
+  }
+  const resetToken = req.params.token;
+  try {
+    const user = await User.findByPasswordToken(resetToken);
+    if (user && moment(user.tokenExpiration).isAfter(moment())) {
+      res.status(200).json({ message: "Token is valid!", id: user.id });
+    } else {
+      // Si el usuario o el token no son válidos, puedes enviar una respuesta 400 Bad Request
+      res.status(400).json({ message: "Invalid token or token has expired" });
+    }
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    // Envía una respuesta 500 Internal Server Error
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Updating password after token validation
+exports.putPasswordUpdate = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const validationError = new Error("Validation failed");
+    validationError.statusCode = 422;
+    validationError.data = errors.array();
+    throw validationError;
+  }
+
+  const { id } = req.params;
+  const newPassword = req.body.password;
+
+  try {
+    const validId = await User.findById(id);
+
+    if (!validId) {
+      const error = new Error("Invalid ID");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    await User.updatePassword(validId.id, newPassword);
+
+    res.status(200).json({ message: "Password updated" });
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    // Envía una respuesta 500 Internal Server Error
+    res.status(500).json({ message: error.message });
   }
 };
