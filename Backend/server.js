@@ -13,6 +13,7 @@ app.use("/auth", routes);
 
 app.use((error, req, res, next) => {
   console.log("ERRROS", error);
+  console.log("msg", error.data.msg);
   const status = error.statusCode || 500;
   const message = error.message;
   const data = error.data || [];

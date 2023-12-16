@@ -42,9 +42,15 @@ User.findById = (id) => {
 
 //Updating password-(token is valid)
 User.updatePassword = (id, password) => {
-  return db("users").where("id", id).update({
-    password: password,
-  });
+  return db("users")
+    .returning("*")
+    .where("id", id)
+    .update({
+      password: password,
+    })
+    .then((result) => {
+      return result[0];
+    });
 };
 
 module.exports = User;

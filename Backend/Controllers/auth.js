@@ -2,16 +2,15 @@ const User = require("../Models/user");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const nodemailder = require("nodemailer");
-const sendGrindTransport = require("nodemailer-sendgrid-transport");
+const nodemailer = require("nodemailer");
+const sendGridTransport = require("nodemailer-sendgrid-transport");
 const crypto = require("crypto");
 const moment = require("moment");
 
-const transporter = nodemailder.createTransport(
-  sendGrindTransport({
+const transporter = nodemailer.createTransport(
+  sendGridTransport({
     auth: {
-      api_key:
-        "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",
+      api_key: "",
     },
   })
 );
@@ -221,7 +220,9 @@ exports.getResetPassword = async (req, res, next) => {
       res.status(200).json({ message: "Token is valid!", id: user.id });
     } else {
       // Si el usuario o el token no son válidos, puedes enviar una respuesta 400 Bad Request
-      res.status(400).json({ message: "Invalid token or token has expired" });
+      res
+        .status(400)
+        .json({ message: "The link has expired, please request a new link" });
     }
   } catch (error) {
     console.error("Error verifying token:", error);
@@ -237,7 +238,7 @@ exports.putPasswordUpdate = async (req, res, next) => {
     const validationError = new Error("Validation failed");
     validationError.statusCode = 422;
     validationError.data = errors.array();
-    throw validationError;
+    return next(validationError); // Cambio aquí: usar return para salir inmediatamente
   }
 
   const { id } = req.params;
@@ -252,12 +253,20 @@ exports.putPasswordUpdate = async (req, res, next) => {
       throw error;
     }
 
-    await User.updatePassword(validId.id, newPassword);
+    // El siguiente bloque then se ejecutará solo si no hay errores de validación
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    const updatedUser = await User.updatePassword(validId.id, hashedPassword);
+
+    console.log(updatedUser);
 
     res.status(200).json({ message: "Password updated" });
   } catch (error) {
-    console.error("Error verifying token:", error);
+    console.error("Error from updating password", error);
     // Envía una respuesta 500 Internal Server Error
-    res.status(500).json({ message: error.message });
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
   }
 };
