@@ -10,7 +10,8 @@ const moment = require("moment");
 const transporter = nodemailer.createTransport(
   sendGridTransport({
     auth: {
-      api_key: "",
+      api_key:
+        "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",
     },
   })
 );
@@ -219,7 +220,7 @@ exports.getResetPassword = async (req, res, next) => {
     if (user && moment(user.tokenExpiration).isAfter(moment())) {
       res.status(200).json({ message: "Token is valid!", id: user.id });
     } else {
-      // Si el usuario o el token no son válidos, puedes enviar una respuesta 400 Bad Request
+      // Linked has expired, error message 400
       res
         .status(400)
         .json({ message: "The link has expired, please request a new link" });
