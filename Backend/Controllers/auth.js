@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport(
   sendGridTransport({
     auth: {
       api_key:
-        "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",
+        "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",
     },
   })
 );
@@ -125,7 +125,12 @@ exports.postLogin = async (req, res, next) => {
     // La autenticación fue exitosa
     res
       .status(200)
-      .json({ message: "Login successful", name: user.name, token: token });
+      .json({
+        message: "Login successful",
+        name: user.name,
+        token: token,
+        id: user.id,
+      });
   } catch (err) {
     // Manejo de errores
     if (!err.statusCode) {
