@@ -2,7 +2,7 @@ const express = require("express");
 const authController = require("../Controllers/auth");
 const { body } = require("express-validator");
 const User = require("../Models/user");
-const isAuth = require("../middleware/is-auth");
+const isAuth = require("../middleware/isAuth");
 
 const router = express.Router();
 
@@ -72,5 +72,7 @@ router.put(
   ],
   authController.putPasswordUpdate
 );
+
+router.get("/dropdown", isAuth, authController.getIsAuthDrop);
 
 module.exports = router;

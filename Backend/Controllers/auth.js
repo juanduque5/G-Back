@@ -117,6 +117,7 @@ exports.postLogin = async (req, res, next) => {
       {
         email: user.email,
         userId: user.id,
+        name: user.name,
       },
       "somehiddensecretsuppersecrethiddentoken",
       { expiresIn: "1h" }
@@ -268,6 +269,19 @@ exports.putPasswordUpdate = async (req, res, next) => {
   } catch (error) {
     console.error("Error from updating password", error);
     // Envía una respuesta 500 Internal Server Error
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.getIsAuthDrop = async (req, res, next) => {
+  try {
+    const id = req.id;
+    res.json({ message: "Dropdown authenticated", id: id });
+  } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
     }
