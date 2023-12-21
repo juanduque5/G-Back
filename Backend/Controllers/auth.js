@@ -123,14 +123,12 @@ exports.postLogin = async (req, res, next) => {
     );
 
     // La autenticación fue exitosa
-    res
-      .status(200)
-      .json({
-        message: "Login successful",
-        name: user.name,
-        token: token,
-        id: user.id,
-      });
+    res.status(200).json({
+      message: "Login successful",
+      name: user.name,
+      token: token,
+      id: user.id,
+    });
   } catch (err) {
     // Manejo de errores
     if (!err.statusCode) {
@@ -162,6 +160,7 @@ exports.postReset = async (req, res, next) => {
     });
 
     const token = buffer.toString("hex");
+
     const user = await User.findByEmail(req.body.email);
 
     if (!user) {
