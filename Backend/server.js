@@ -12,10 +12,10 @@ app.use(cors());
 app.use("/auth", routes);
 
 app.use((error, req, res, next) => {
-  console.log("ERRROS", error);
-  console.log("msg", error.data.msg);
+  console.error("ERRORS", error);
+
   const status = error.statusCode || 500;
-  const message = error.message;
+  const message = error.message || "Internal Server Error";
   const data = error.data || [];
 
   res.status(status).json({ message: message, data: data });
