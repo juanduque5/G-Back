@@ -10,8 +10,7 @@ const moment = require("moment");
 const transporter = nodemailer.createTransport(
   sendGridTransport({
     auth: {
-      api_key:
-        "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",
+      api_key: "",
     },
   })
 );
