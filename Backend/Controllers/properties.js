@@ -1,30 +1,84 @@
-const User = require("../Models/user");
-// const { validationResult } = require("express-validator");
-// const bcrypt = require("bcryptjs");
-// const jwt = require("jsonwebtoken");
-// const nodemailer = require("nodemailer");
-// const sendGridTransport = require("nodemailer-sendgrid-transport");
-// const crypto = require("crypto");
-// const moment = require("moment");
+// const User = require("../Models/user");
+const Properties = require("../Models/properties");
+const { validationResult } = require("express-validator");
 
 exports.postProperties = async (req, res, next) => {
   const ciudad = req.body.ciudad;
   const barrio = req.body.barrio;
-  const habitaciones = req.body.description;
+  const description = req.body.description;
+  const habitaciones = req.body.habitaciones;
   const banos = req.body.banos;
   const estacionamientos = req.body.estacionamientos;
   const area = req.body.area;
   const estado = req.body.estado;
+  const tipo = req.body.tipo;
+  const user_id = req.body.id;
 
   console.log("property data:", req.body);
 
-  //   try {
-  //     res.json({ message: "Dropdown authenticated", id: id });
-  //   } catch (error) {
-  //     if (!error.statusCode) {
-  //       error.statusCode = 500;
-  //     }
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error("Validation failed");
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
 
-  //     next(error);
-  //   }
+    const propertiesResult = await Properties.insertData(
+      user_id,
+      ciudad,
+      barrio,
+      description,
+      banos,
+      habitaciones,
+      area,
+      estado,
+      tipo,
+      estacionamientos
+    );
+
+    if (!propertiesResult) {
+      const error = new Error("ERROR: property data");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    res.status(200).json({
+      message: "Property data successfully inserted",
+      data: propertiesResult,
+    });
+
+    console.log("data inserted");
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.getInfo = async (req, res, next) => {
+  console.log("se llamo aquii");
+  try {
+    const allProperties = await Properties.propertiesData();
+    if (!allProperties) {
+      const error = new Error("ERROR: All property data");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    console.log("all properties API", allProperties);
+    res.status(200).json({
+      message: "All property data successfully sent",
+      data: allProperties,
+    });
+  } catch (error) {
+    console.error("Error in catch block:", error);
+    if (!error.statusCode) {
+      error.statusCode = 500;
+      next(error);
+    }
+  }
 };
