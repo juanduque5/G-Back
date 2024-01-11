@@ -6,7 +6,9 @@ const User = require("../Models/user");
 const isAuth = require("../middleware/isAuth");
 
 const router = express.Router();
-
+const multer = require("multer"); // Agrega la importación de multer
+const storage = multer.memoryStorage(); // Almacena los archivos en memoria, puedes ajustarlo según tus necesidades
+const upload = multer({ storage: storage });
 // Rutas protegidas que requieren autenticación
 //put the routes that will be authenticated under the next line
 //router.use(isAuth());
@@ -15,6 +17,8 @@ const router = express.Router();
 
 router.post(
   "/properties",
+  upload.array("imagen", 5), // Ajusta el nombre del campo según tu implementación
+
   [
     body([
       "id",
