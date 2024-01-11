@@ -34,4 +34,6 @@ router.post(
 
 router.get("/info", properController.getInfo);
 
+router.get("/infoById/:id", properController.getInfoById);
+
 module.exports = router;

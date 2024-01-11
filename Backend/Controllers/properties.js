@@ -13,6 +13,7 @@ exports.postProperties = async (req, res, next) => {
   const estado = req.body.estado;
   const tipo = req.body.tipo;
   const user_id = req.body.id;
+  const uso = req.body.uso;
 
   console.log("property data:", req.body);
 
@@ -35,7 +36,8 @@ exports.postProperties = async (req, res, next) => {
       area,
       estado,
       tipo,
-      estacionamientos
+      estacionamientos,
+      uso
     );
 
     if (!propertiesResult) {
@@ -69,13 +71,37 @@ exports.getInfo = async (req, res, next) => {
       throw error;
     }
 
-    console.log("all properties API", allProperties);
+    // console.log("all properties API", allProperties);
     res.status(200).json({
       message: "All property data successfully sent",
       data: allProperties,
     });
   } catch (error) {
     console.error("Error in catch block:", error);
+    if (!error.statusCode) {
+      error.statusCode = 500;
+      next(error);
+    }
+  }
+};
+
+exports.getInfoById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const propertyById = await Properties.propertyById(id);
+    if (!propertyById) {
+      const error = new Error("ERROR: PropertyById");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    console.log("propertyById", propertyById);
+    res.status(200).json({
+      message: "PropertyById successfully sento to FRONT END",
+      data: propertyById,
+    });
+  } catch (error) {
+    console.error("Error in catch block propertyById:", error);
     if (!error.statusCode) {
       error.statusCode = 500;
       next(error);

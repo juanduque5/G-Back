@@ -12,7 +12,8 @@ Properties.insertData = (
   area,
   estado,
   tipo,
-  estacionamientos
+  estacionamientos,
+  uso
 ) => {
   return db("propiedades")
     .returning("*")
@@ -27,6 +28,7 @@ Properties.insertData = (
       estado: estado,
       tipo: tipo,
       estacionamientos: estacionamientos,
+      uso: uso,
     })
     .then((result) => {
       return result[0];
@@ -49,6 +51,10 @@ Properties.propertiesData = () => {
       console.error("ERROR: todas las propiedades:", error);
       throw error;
     });
+};
+
+Properties.propertyById = (id) => {
+  return db("propiedades").where("id", id).first();
 };
 
 module.exports = Properties;
