@@ -15,6 +15,9 @@ const upload = multer({ storage: storage });
 
 //post properties
 
+// AKIATCKASWPFU6XQPBMB;
+// QVwQJV9TgRrslFYKvRQNspBdpYyJ7UDaV / VqhHIO;
+
 router.post(
   "/properties",
   upload.array("imagen", 5), // Ajusta el nombre del campo según tu implementación
