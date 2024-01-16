@@ -41,10 +41,12 @@ Properties.insertData = (
 };
 
 Properties.propertiesData = () => {
-  return db("propiedades")
-    .select("*")
+  return db
+    .select("propiedades.*", "imagenes.url as imageURL")
+    .from("propiedades")
+    .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
     .then((data) => {
-      console.log("todas las propiedades:", data); // Aquí obtienes los registros de propiedades
+      // console.log("todas las propiedades:", data); // Aquí obtienes los registros de propiedades con las URLs
       return data;
     })
     .catch((error) => {
@@ -55,6 +57,23 @@ Properties.propertiesData = () => {
 
 Properties.propertyById = (id) => {
   return db("propiedades").where("id", id).first();
+};
+
+Properties.insertImage = (id, url) => {
+  return db("imagenes")
+    .returning("*")
+    .insert({
+      propiedad_id: id,
+      url: url,
+    })
+    .then((result) => {
+      return result[0];
+    })
+    .catch((error) => {
+      // manejar el error aquí
+      console.error("Error al insertar imagen:", error);
+      throw error; // puedes personalizar la respuesta de error según tus necesidades
+    });
 };
 
 module.exports = Properties;

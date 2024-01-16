@@ -1,9 +1,19 @@
 // const User = require("../Models/user");
 
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} = require("@aws-sdk/client-s3");
 const Properties = require("../Models/properties");
+const sharp = require("sharp");
 const { validationResult } = require("express-validator");
+const crypto = require("crypto");
+
 require("dotenv").config();
+
+const randomImageName = (bytes = 32) =>
+  crypto.randomBytes(bytes).toString("hex");
 
 const awsAccess = process.env.AWS_ACCESS_KEY_ID;
 const awsSecret = process.env.AWS_SECRET_ACCESS_KEY;
@@ -19,13 +29,18 @@ const s3 = new S3Client({
 });
 
 exports.postProperties = async (req, res, next) => {
+  const imageName = randomImageName();
+  const buffer = await sharp(req.files[0].buffer)
+    .resize({ height: 1920, width: 1080, fit: "contain" })
+    .toBuffer();
+
   console.log(awsAccess);
   console.log(s3Bucket);
   console.log("Nombre del archivo original:", req.files[0].originalname);
   const params = {
     Bucket: s3Bucket,
-    Key: req.files[0].originalname,
-    Body: req.files[0].buffer,
+    Key: imageName,
+    Body: buffer,
     ContentType: req.files[0].mimetype,
   };
 
@@ -57,10 +72,6 @@ exports.postProperties = async (req, res, next) => {
   console.log(formData);
   console.log(files);
 
-  // Ahora puedes procesar los archivos y datos del formulario como desees
-
-  // res.status(200).json({ message: "Solicitud procesada correctamente" });
-
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -84,18 +95,32 @@ exports.postProperties = async (req, res, next) => {
       uso
     );
 
+    console.log("propertyResult", propertiesResult);
+
     if (!propertiesResult) {
       const error = new Error("ERROR: property data");
       error.statusCode = 500;
       throw error;
     }
+    console.log("data inserted");
+
+    const imageResult = await Properties.insertImage(
+      propertiesResult.id,
+      imageName
+    );
+
+    if (!imageResult) {
+      const error = new Error("ERROR: property data");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    console.log("image inserted");
 
     res.status(200).json({
       message: "Property data successfully inserted",
       data: propertiesResult,
     });
-
-    console.log("data inserted");
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -115,7 +140,7 @@ exports.getInfo = async (req, res, next) => {
       throw error;
     }
 
-    // console.log("all properties API", allProperties);
+    console.log("all properties API:", allProperties);
     res.status(200).json({
       message: "All property data successfully sent",
       data: allProperties,
