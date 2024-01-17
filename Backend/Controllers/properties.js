@@ -9,6 +9,7 @@ const Properties = require("../Models/properties");
 const sharp = require("sharp");
 const { validationResult } = require("express-validator");
 const crypto = require("crypto");
+// const { all } = require("../Routes/properties");
 
 require("dotenv").config();
 
@@ -29,31 +30,10 @@ const s3 = new S3Client({
 });
 
 exports.postProperties = async (req, res, next) => {
-  const imageName = randomImageName();
-  const buffer = await sharp(req.files[0].buffer)
-    .resize({ height: 1920, width: 1080, fit: "contain" })
-    .toBuffer();
+  const files = req.files;
+  let propertiesResult;
 
-  console.log(awsAccess);
-  console.log(s3Bucket);
-  console.log("Nombre del archivo original:", req.files[0].originalname);
-  const params = {
-    Bucket: s3Bucket,
-    Key: imageName,
-    Body: buffer,
-    ContentType: req.files[0].mimetype,
-  };
-
-  const command = new PutObjectCommand(params);
-
-  try {
-    await s3.send(command);
-    console.log("S3 successfully inserted");
-  } catch (error) {
-    console.error("Error al subir el archivo a S3:", error);
-    // Manejar el error según sea necesario
-  }
-
+  // Guardar información en la base de datos
   const ciudad = req.body.ciudad;
   const barrio = req.body.barrio;
   const description = req.body.description;
@@ -66,12 +46,6 @@ exports.postProperties = async (req, res, next) => {
   const user_id = req.body.id;
   const uso = req.body.uso;
 
-  const files = req.files;
-  const formData = req.body; // Accede a otros campos del formulario a través de req.body
-
-  console.log(formData);
-  console.log(files);
-
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -81,7 +55,8 @@ exports.postProperties = async (req, res, next) => {
       throw error;
     }
 
-    const propertiesResult = await Properties.insertData(
+    // Insertar información en la base de datos para cada archivo
+    propertiesResult = await Properties.insertData(
       user_id,
       ciudad,
       barrio,
@@ -95,43 +70,71 @@ exports.postProperties = async (req, res, next) => {
       uso
     );
 
-    console.log("propertyResult", propertiesResult);
-
     if (!propertiesResult) {
       const error = new Error("ERROR: property data");
       error.statusCode = 500;
       throw error;
     }
+
     console.log("data inserted");
 
-    const imageResult = await Properties.insertImage(
-      propertiesResult.id,
-      imageName
-    );
-
-    if (!imageResult) {
-      const error = new Error("ERROR: property data");
-      error.statusCode = 500;
-      throw error;
+    for (const file of files) {
     }
-
-    console.log("image inserted");
-
     res.status(200).json({
       message: "Property data successfully inserted",
-      data: propertiesResult,
     });
   } catch (error) {
-    if (!error.statusCode) {
-      error.statusCode = 500;
-    }
+    console.error("Error:", error);
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: "Error en el servidor" });
+  }
 
-    next(error);
+  for (const file of files) {
+    const imageName = randomImageName();
+    // const buffer = await sharp(file.buffer)
+    //   .resize({ height: 1920, width: 1080, fit: "contain" })
+    //   .toBuffer();
+
+    console.log("Nombre del archivo original:", file.originalname);
+
+    const params = {
+      Bucket: s3Bucket,
+      Key: imageName,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    };
+
+    const command = new PutObjectCommand(params);
+
+    try {
+      // Subir archivo a S3
+      await s3.send(command);
+      console.log("S3 successfully inserted");
+
+      const imageResult = await Properties.insertImage(
+        propertiesResult.id,
+        imageName
+      );
+
+      if (!imageResult) {
+        const error = new Error("ERROR: property data");
+        error.statusCode = 500;
+        throw error;
+      }
+
+      console.log("image inserted");
+    } catch (error) {
+      console.error("Error al subir el archivo a S3:", error);
+      // Manejar el error según sea necesario
+      return res.status(500).json({ message: "Error al subir archivos a S3" });
+    }
   }
 };
 
 exports.getInfo = async (req, res, next) => {
   console.log("se llamo aquii");
+  let element;
   try {
     const allProperties = await Properties.propertiesData();
     if (!allProperties) {
@@ -140,10 +143,24 @@ exports.getInfo = async (req, res, next) => {
       throw error;
     }
 
-    console.log("all properties API:", allProperties);
+    const newProperties = allProperties.filter((obj, index) => {
+      return index === allProperties.findIndex((index) => index.id === obj.id);
+    });
+
+    console.log("all properties API:", newProperties);
+
+    const updatedProperties = newProperties.map((property) => {
+      return {
+        ...property,
+        imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
+      };
+    });
+
+    console.log("updatedProperties API:", updatedProperties);
+
     res.status(200).json({
       message: "All property data successfully sent",
-      data: allProperties,
+      data: updatedProperties,
     });
   } catch (error) {
     console.error("Error in catch block:", error);
@@ -165,9 +182,21 @@ exports.getInfoById = async (req, res, next) => {
     }
 
     console.log("propertyById", propertyById);
+    const imageUrl = await Properties.searchImagesById(id);
+
+    const updatedUrls = imageUrl.map((urlObject) => urlObject["imageURL."]);
+    console.log("image URLs:", updatedUrls);
+
+    const updatedData = updatedUrls.map((url) => {
+      return {
+        ...propertyById,
+        imageUrl: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${url}`,
+      };
+    });
+    console.log("up", updatedData);
     res.status(200).json({
       message: "PropertyById successfully sento to FRONT END",
-      data: propertyById,
+      data: updatedData,
     });
   } catch (error) {
     console.error("Error in catch block propertyById:", error);

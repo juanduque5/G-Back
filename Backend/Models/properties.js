@@ -76,4 +76,20 @@ Properties.insertImage = (id, url) => {
     });
 };
 
+Properties.searchImagesById = (id) => {
+  return db
+    .select("imagenes.url as imageURL.")
+    .from("propiedades")
+    .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
+    .where("propiedad_id", id) // Reemplaza tuIdEspecifico con el valor que estás buscando
+    .then((data) => {
+      // Aquí obtienes los registros de propiedades con las URLs
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR al obtener las imageURL:", error);
+      throw error;
+    });
+};
+
 module.exports = Properties;
