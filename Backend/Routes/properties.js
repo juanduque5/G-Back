@@ -43,4 +43,6 @@ router.get("/info", properController.getInfo);
 
 router.get("/infoById/:id", properController.getInfoById);
 
+router.get("/allPropertiesByUser/:id", properController.getAllPropertiesByUser);
+
 module.exports = router;

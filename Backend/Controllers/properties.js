@@ -206,3 +206,30 @@ exports.getInfoById = async (req, res, next) => {
     }
   }
 };
+
+exports.getAllPropertiesByUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const propertiesById = await Properties.userPropertiesById(id);
+    if (!propertiesById) {
+      const error = new Error("ERROR: PropertyById");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    console.log("propertiesById", propertiesById);
+
+    res.status(200).json({
+      message: "PropertiesById successfully sent to FRONT END",
+      propertiesById: propertiesById,
+    });
+
+    console.log("propertiesById were successfully sent ");
+  } catch (error) {
+    console.error("Error in catch block propertyById:", error);
+    if (!error.statusCode) {
+      error.statusCode = 500;
+      next(error);
+    }
+  }
+};

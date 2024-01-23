@@ -59,6 +59,10 @@ Properties.propertyById = (id) => {
   return db("propiedades").where("id", id).first();
 };
 
+Properties.userPropertiesById = (id) => {
+  return db("propiedades").select("*").where("user_id", id);
+};
+
 Properties.insertImage = (id, url) => {
   return db("imagenes")
     .returning("*")
