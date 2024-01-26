@@ -27,7 +27,8 @@ exports.postSignup = (req, res, next) => {
 
   // Obtaining info from req.body
   const email = req.body.email;
-  const name = req.body.name;
+  const first = req.body.first;
+  const last = req.body.last;
   const password = req.body.password;
 
   let newUser; // Variable para almacenar el usuario creado
@@ -38,8 +39,9 @@ exports.postSignup = (req, res, next) => {
     .then((hashedpassword) => {
       // Crear usuario con contraseña hasheada
       return User.create({
+        first: first,
+        last: last,
         email: email,
-        name: name,
         password: hashedpassword,
       });
     })
@@ -112,7 +114,7 @@ exports.postLogin = async (req, res, next) => {
 
     // const name = user.name;
 
-    //Creatigng jwt token for authorization
+    //Creating jwt token for authorization
     const token = jwt.sign(
       {
         email: user.email,

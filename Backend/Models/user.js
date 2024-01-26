@@ -5,7 +5,7 @@ const User = {};
 //Create user for signing up
 User.create = (userInput) => {
   console.log("Email length:", userInput.email.length);
-  console.log("Name length:", userInput.name.length);
+  // console.log("Name length:", userInput.name.length);
   console.log("Password length:", userInput.password.length);
 
   return db("users")

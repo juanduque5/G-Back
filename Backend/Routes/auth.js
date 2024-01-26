@@ -28,7 +28,8 @@ router.post(
       .trim()
       .isLength({ min: 5 })
       .withMessage("Password must be at least 5 characters"),
-    body("name").trim().not().isEmpty().withMessage("Name is empty"),
+    body("first").trim().not().isEmpty().withMessage("Name is empty"),
+    body("last").trim().not().isEmpty().withMessage("Name is empty"),
   ],
   authController.postSignup
 );
