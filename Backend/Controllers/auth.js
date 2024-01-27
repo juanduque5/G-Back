@@ -6,6 +6,7 @@ const nodemailer = require("nodemailer");
 const sendGridTransport = require("nodemailer-sendgrid-transport");
 const crypto = require("crypto");
 const moment = require("moment");
+require("dotenv").config();
 
 const transporter = nodemailer.createTransport(
   sendGridTransport({
@@ -119,18 +120,21 @@ exports.postLogin = async (req, res, next) => {
       {
         email: user.email,
         userId: user.id,
-        name: user.name,
+        first: user.first,
+        last: user.last,
       },
-      "somehiddensecretsuppersecrethiddentoken",
+      process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     // La autenticación fue exitosa
     res.status(200).json({
       message: "Login successful",
-      name: user.name,
+      first: user.first,
+      last: user.last,
       token: token,
       id: user.id,
+      email: user.email,
     });
   } catch (err) {
     // Manejo de errores
@@ -283,6 +287,40 @@ exports.getIsAuthDrop = async (req, res, next) => {
   try {
     const id = req.id;
     res.json({ message: "Dropdown authenticated", id: id });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.putProfileUpdate = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const validationError = new Error("Validation failed");
+    validationError.statusCode = 422;
+    validationError.data = errors.array();
+    return next(validationError); // Cambio aquí: usar return para salir inmediatamente
+  }
+
+  const { email, first, last } = req.body;
+  const { id } = req.params;
+
+  try {
+    const newProfile = await User.updateProfile(id, email, first, last);
+    if (!newProfile) {
+      const error = new Error("Invalid new Profile");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    res.json({
+      newProfile: newProfile,
+      message: "Profile successfully updated",
+    });
+    console.log("Profile successfully updated");
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

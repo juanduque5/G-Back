@@ -74,6 +74,19 @@ router.put(
   authController.putPasswordUpdate
 );
 
+router.put(
+  "/profile/:id",
+  [
+    body("email")
+      .isEmail()
+      .withMessage("Please enter a valid email")
+      .normalizeEmail(),
+    body("first").trim().not().isEmpty().withMessage("First name is empty"),
+    body("last").trim().not().isEmpty().withMessage("Last name is empty"),
+  ],
+  authController.putProfileUpdate
+);
+
 router.get("/dropdown", isAuth, authController.getIsAuthDrop);
 
 module.exports = router;

@@ -53,4 +53,21 @@ User.updatePassword = (id, password) => {
     });
 };
 
+//Updating profile information
+User.updateProfile = async (id, email, first, last) => {
+  try {
+    await db("users").where("id", id).update({
+      email: email,
+      first: first,
+      last: last,
+    });
+
+    const updatedProfile = await db("users").where("id", id).first();
+    return updatedProfile;
+  } catch (error) {
+    console.error("Error al actualizar el perfil:", error);
+    throw new Error("Error al actualizar el perfil.");
+  }
+};
+
 module.exports = User;

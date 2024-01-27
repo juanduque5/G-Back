@@ -1,8 +1,10 @@
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 module.exports = (req, res, next) => {
   // Verificar autorización
   const authorizationHeader = req.get("Authorization");
+  const jwtSecret = process.env.JWT_SECRET;
 
   // Verificar si la variable token es nula
   if (!authorizationHeader) {
@@ -16,7 +18,7 @@ module.exports = (req, res, next) => {
   console.log("TOKEN: ", token);
   let decodedToken;
   try {
-    decodedToken = jwt.verify(token, "somehiddensecretsuppersecrethiddentoken"); // Reemplaza 'tu_secreto' con tu secreto real
+    decodedToken = jwt.verify(token, jwtSecret); // Reemplaza 'tu_secreto' con tu secreto real
   } catch (err) {
     err.statusCode = err.statusCode || 500;
     console.log("adentro");
