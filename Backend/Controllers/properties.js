@@ -78,8 +78,8 @@ exports.postProperties = async (req, res, next) => {
 
     console.log("data inserted");
 
-    for (const file of files) {
-    }
+    // for (const file of files) {
+    // }
     res.status(200).json({
       message: "Property data successfully inserted",
     });
@@ -92,16 +92,23 @@ exports.postProperties = async (req, res, next) => {
 
   for (const file of files) {
     const imageName = randomImageName();
-    // const buffer = await sharp(file.buffer)
-    //   .resize({ height: 1920, width: 1080, fit: "contain" })
-    //   .toBuffer();
+    console.log("files details before:", file.mimetype);
+    const buffer = await sharp(file.buffer)
+      .toFormat("jpeg")
+      .jpeg({ quality: 50 })
+      .toBuffer();
 
     console.log("Nombre del archivo original:", file.originalname);
+    const processedMimetype = await sharp(buffer)
+      .metadata()
+      .then((metadata) => metadata.format);
+    console.log("Files details after processing:");
+    console.log("Processed Mimetype:", processedMimetype);
 
     const params = {
       Bucket: s3Bucket,
       Key: imageName,
-      Body: file.buffer,
+      Body: buffer,
       ContentType: file.mimetype,
     };
 
