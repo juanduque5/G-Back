@@ -150,11 +150,13 @@ exports.getInfo = async (req, res, next) => {
       throw error;
     }
 
+    // console.log(allProperties);
+
     const newProperties = allProperties.filter((obj, index) => {
       return index === allProperties.findIndex((index) => index.id === obj.id);
     });
 
-    console.log("all properties API:", newProperties);
+    // console.log("all properties API:", newProperties);
 
     const updatedProperties = newProperties.map((property) => {
       return {
@@ -163,7 +165,7 @@ exports.getInfo = async (req, res, next) => {
       };
     });
 
-    console.log("updatedProperties API:", updatedProperties);
+    // console.log("updatedProperties API:", updatedProperties);
 
     res.status(200).json({
       message: "All property data successfully sent",
@@ -188,7 +190,7 @@ exports.getInfoById = async (req, res, next) => {
       throw error;
     }
 
-    console.log("propertyById", propertyById);
+    // console.log("propertyById", propertyById);
     const imageUrl = await Properties.searchImagesById(id);
 
     const updatedUrls = imageUrl.map((urlObject) => urlObject["imageURL."]);
@@ -225,6 +227,11 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
     }
 
     console.log("propertiesById", propertiesById);
+
+    for (const properties of propertiesById) {
+      var images = await Properties.searchImagesById(properties.id);
+      console.log("images by id", images);
+    }
 
     res.status(200).json({
       message: "PropertiesById successfully sent to FRONT END",
