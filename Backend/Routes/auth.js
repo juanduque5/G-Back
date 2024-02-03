@@ -3,6 +3,9 @@ const authController = require("../Controllers/auth");
 const { body } = require("express-validator");
 const User = require("../Models/user");
 const isAuth = require("../middleware/isAuth");
+const multer = require("multer");
+const storage = multer.memoryStorage(); // Almacena los archivos en memoria, puedes ajustarlo según tus necesidades
+const upload = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -85,6 +88,12 @@ router.put(
     body("last").trim().not().isEmpty().withMessage("Last name is empty"),
   ],
   authController.putProfileUpdate
+);
+
+router.put(
+  "/imageUpdate/:id",
+  upload.array("imagen", 1),
+  authController.putImageUpdate
 );
 
 router.get("/dropdown", isAuth, authController.getIsAuthDrop);

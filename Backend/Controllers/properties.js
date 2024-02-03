@@ -219,23 +219,39 @@ exports.getInfoById = async (req, res, next) => {
 exports.getAllPropertiesByUser = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const propertiesById = await Properties.userPropertiesById(id);
-    if (!propertiesById) {
-      const error = new Error("ERROR: PropertyById");
-      error.statusCode = 500;
+    const propertiesById = await Properties.propertiesInfoAndImagesById(id);
+
+    if (!propertiesById || propertiesById.length === 0) {
+      const error = new Error("No properties found for the specified user ID");
+      error.statusCode = 404; // Not Found
       throw error;
     }
 
-    console.log("propertiesById", propertiesById);
+    console.log("propertiesById I:", propertiesById);
 
-    for (const properties of propertiesById) {
-      var images = await Properties.searchImagesById(properties.id);
-      console.log("images by id", images);
-    }
+    const newProperties = propertiesById.filter((obj, index) => {
+      return index === propertiesById.findIndex((index) => index.id === obj.id);
+    });
+
+    console.log("propertiesById II:", newProperties);
+
+    // for (const properties of propertiesById) {
+    //   var images = await Properties.searchImagesById(properties.id);
+    //   console.log("images by id", images);
+    // }
+
+    const updatedProperties = newProperties.map((Properties) => {
+      return {
+        ...Properties,
+        imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${Properties.imageURL}`,
+      };
+    });
+
+    console.log("propertiesById III:", updatedProperties);
 
     res.status(200).json({
       message: "PropertiesById successfully sent to FRONT END",
-      propertiesById: propertiesById,
+      propertiesById: updatedProperties,
     });
 
     console.log("propertiesById were successfully sent ");

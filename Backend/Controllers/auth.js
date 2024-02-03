@@ -5,8 +5,30 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const sendGridTransport = require("nodemailer-sendgrid-transport");
 const crypto = require("crypto");
+const sharp = require("sharp");
 const moment = require("moment");
+const {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} = require("@aws-sdk/client-s3");
 require("dotenv").config();
+
+const randomImageName = (bytes = 32) =>
+  crypto.randomBytes(bytes).toString("hex");
+
+const awsAccess = process.env.AWS_ACCESS_KEY_ID;
+const awsSecret = process.env.AWS_SECRET_ACCESS_KEY;
+const awsRegion = process.env.AWS_REGION;
+const s3Bucket = process.env.S3_BUCKET;
+
+const s3 = new S3Client({
+  credentials: {
+    accessKeyId: awsAccess,
+    secretAccessKey: awsSecret,
+  },
+  region: awsRegion,
+});
 
 const transporter = nodemailer.createTransport(
   sendGridTransport({
@@ -327,5 +349,57 @@ exports.putProfileUpdate = async (req, res, next) => {
     }
 
     next(error);
+  }
+};
+
+exports.putImageUpdate = async (req, res, next) => {
+  const file = req.files[0];
+
+  console.log("hello");
+
+  const imageName = randomImageName();
+  console.log("files details before:", file.mimetype);
+  const buffer = await sharp(file.buffer)
+    .toFormat("jpeg")
+    .jpeg({ quality: 70 })
+    .toBuffer();
+
+  console.log("Nombre del archivo original:", file.originalname);
+  const processedMimetype = await sharp(buffer)
+    .metadata()
+    .then((metadata) => metadata.format);
+  console.log("Files details after processing:");
+  console.log("Processed Mimetype:", processedMimetype);
+
+  const params = {
+    Bucket: s3Bucket,
+    Key: imageName,
+    Body: buffer,
+    ContentType: file.mimetype,
+  };
+
+  const command = new PutObjectCommand(params);
+
+  try {
+    // Subir archivo a S3
+    await s3.send(command);
+    console.log("S3 successfully inserted");
+
+    // const imageResult = await Properties.insertImage(
+    //   propertiesResult.id,
+    //   imageName
+    // );
+
+    // if (!imageResult) {
+    //   const error = new Error("ERROR: property data");
+    //   error.statusCode = 500;
+    //   throw error;
+    // }
+
+    console.log("image inserted");
+  } catch (error) {
+    console.error("Error al subir el archivo a S3:", error);
+    // Manejar el error según sea necesario
+    return res.status(500).json({ message: "Error al subir archivos a S3" });
   }
 };

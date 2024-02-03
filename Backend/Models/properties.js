@@ -96,4 +96,21 @@ Properties.searchImagesById = (id) => {
     });
 };
 
+Properties.propertiesInfoAndImagesById = (id) => {
+  return db
+    .select("propiedades.*", "imagenes.url as imageURL")
+    .from("propiedades")
+    .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
+    .leftJoin("users", "propiedades.user_id", "users.id")
+    .where("propiedades.user_id", id)
+    .then((data) => {
+      // console.log("todas las propiedades:", data); // Aquí obtienes los registros de propiedades con las URLs
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: todas las propiedades:", error);
+      throw error;
+    });
+};
+
 module.exports = Properties;
