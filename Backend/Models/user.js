@@ -1,4 +1,5 @@
 const db = require("../db/knex");
+const { userPropertiesById } = require("./properties");
 
 const User = {};
 
@@ -67,6 +68,31 @@ User.updateProfile = async (id, email, first, last) => {
   } catch (error) {
     console.error("Error al actualizar el perfil:", error);
     throw new Error("Error al actualizar el perfil.");
+  }
+};
+
+User.findImageProfileById = async (id) => {
+  try {
+    const result = await db("users").select("url").where("id", id);
+
+    return result[0];
+  } catch (error) {
+    console.error("ERROR findImageProfileById (USERS)", error);
+    throw error;
+  }
+};
+
+User.updateImageProfile = async (id, url) => {
+  try {
+    const result = await db("users")
+      .returning("url")
+      .where("id", id)
+      .update({ url: url });
+
+    return result[0];
+  } catch (error) {
+    console.error("ERROR UPDATE IMAGE PROFILE (USERS)", error);
+    throw error;
   }
 };
 

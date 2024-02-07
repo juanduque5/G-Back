@@ -1,3 +1,10 @@
+const {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} = require("@aws-sdk/client-s3");
+
 const User = require("../Models/user");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
@@ -7,11 +14,7 @@ const sendGridTransport = require("nodemailer-sendgrid-transport");
 const crypto = require("crypto");
 const sharp = require("sharp");
 const moment = require("moment");
-const {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-} = require("@aws-sdk/client-s3");
+
 require("dotenv").config();
 
 const randomImageName = (bytes = 32) =>
@@ -353,53 +356,80 @@ exports.putProfileUpdate = async (req, res, next) => {
 };
 
 exports.putImageUpdate = async (req, res, next) => {
-  const file = req.files[0];
-
-  console.log("hello");
-
-  const imageName = randomImageName();
-  console.log("files details before:", file.mimetype);
-  const buffer = await sharp(file.buffer)
-    .toFormat("jpeg")
-    .jpeg({ quality: 70 })
-    .toBuffer();
-
-  console.log("Nombre del archivo original:", file.originalname);
-  const processedMimetype = await sharp(buffer)
-    .metadata()
-    .then((metadata) => metadata.format);
-  console.log("Files details after processing:");
-  console.log("Processed Mimetype:", processedMimetype);
-
-  const params = {
-    Bucket: s3Bucket,
-    Key: imageName,
-    Body: buffer,
-    ContentType: file.mimetype,
-  };
-
-  const command = new PutObjectCommand(params);
-
   try {
-    // Subir archivo a S3
-    await s3.send(command);
-    console.log("S3 successfully inserted");
+    const file = req.files[0];
+    const { id } = req.params;
+    const imageName = randomImageName();
+    const buffer = await sharp(file.buffer)
+      .toFormat("jpeg")
+      .jpeg({ quality: 70 })
+      .toBuffer();
 
-    // const imageResult = await Properties.insertImage(
-    //   propertiesResult.id,
-    //   imageName
-    // );
+    const object = await User.findImageProfileById(id);
+    const url = object.url;
+    console.log("url", url);
+    console.log("imageName", imageName);
 
-    // if (!imageResult) {
-    //   const error = new Error("ERROR: property data");
-    //   error.statusCode = 500;
-    //   throw error;
-    // }
+    if (url) {
+      const deleteImageParams = {
+        Bucket: s3Bucket,
+        Key: url,
+      };
 
-    console.log("image inserted");
+      await s3
+        .send(new DeleteObjectCommand(deleteImageParams))
+        .then(() => {
+          console.log("Objecto borrado exitosamente");
+        })
+        .catch((error) => {
+          console.error("Error al borrar el objeto:", error);
+        });
+    }
+
+    const s3Params = {
+      Bucket: s3Bucket,
+      Key: imageName,
+      Body: buffer,
+      ContentType: file.mimetype,
+    };
+
+    await s3
+      .send(new PutObjectCommand(s3Params))
+      .then(() => {
+        console.log("Objecto actualizado exitosamente");
+      })
+      .catch((error) => {
+        console.error("Error al actualizar el objeto:", error);
+      });
+
+    const updateImageProfile = await User.updateImageProfile(id, imageName);
+
+    if (!updateImageProfile) {
+      const error = new Error(
+        "ERROR: No se pudo actualizar la imagen de perfil en la base de datos"
+      );
+      error.statusCode = 500;
+      throw error;
+    }
+
+    res
+      .status(200)
+      .json({ message: "Imagen de perfil actualizada exitosamente" });
+    console.log("image url updated ");
   } catch (error) {
-    console.error("Error al subir el archivo a S3:", error);
-    // Manejar el error según sea necesario
-    return res.status(500).json({ message: "Error al subir archivos a S3" });
+    console.error("Error al actualizar la imagen de perfil:", error);
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
   }
 };
+
+// console.log("files details before:", file.mimetype);
+
+// console.log("Nombre del archivo original:", file.originalname);
+// const processedMimetype = await sharp(buffer)
+//   .metadata()
+//   .then((metadata) => metadata.format);
+// console.log("Files details after processing:");
+// console.log("Processed Mimetype:", processedMimetype);

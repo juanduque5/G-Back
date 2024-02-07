@@ -4,6 +4,7 @@ const {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 const Properties = require("../Models/properties");
 const sharp = require("sharp");
