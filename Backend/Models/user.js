@@ -96,4 +96,18 @@ User.updateImageProfile = async (id, url) => {
   }
 };
 
+User.deleteProfileImg = async (id, url) => {
+  try {
+    const result = await db("users")
+      .returning("url")
+      .where("id", id)
+      .update({ url: "" });
+
+    return result[0];
+  } catch (error) {
+    console.error("ERROR UPDATE IMAGE PROFILE (USERS)", error);
+    throw error;
+  }
+};
+
 module.exports = User;

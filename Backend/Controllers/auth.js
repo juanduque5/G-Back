@@ -152,6 +152,8 @@ exports.postLogin = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
+    const imageUrl = `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${user.url}`;
+
     // La autenticación fue exitosa
     res.status(200).json({
       message: "Login successful",
@@ -160,6 +162,7 @@ exports.postLogin = async (req, res, next) => {
       token: token,
       id: user.id,
       email: user.email,
+      imageURL: imageUrl,
     });
   } catch (err) {
     // Manejo de errores
@@ -412,12 +415,55 @@ exports.putImageUpdate = async (req, res, next) => {
       throw error;
     }
 
-    res
-      .status(200)
-      .json({ message: "Imagen de perfil actualizada exitosamente" });
+    const imageUrl = `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${updateImageProfile.url}`;
+
+    console.log("imageURL LAST->", imageUrl);
+
+    res.status(200).json({
+      message: "Imagen de perfil actualizada exitosamente",
+      image: imageUrl,
+    });
     console.log("image url updated ");
   } catch (error) {
     console.error("Error al actualizar la imagen de perfil:", error);
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
+};
+
+exports.deleteProfileImg = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const object = await User.findImageProfileById(id);
+    const url = object.url;
+    console.log("url", url);
+    console.log("imageName", imageName);
+
+    if (url) {
+      const deleteImageParams = {
+        Bucket: s3Bucket,
+        Key: url,
+      };
+
+      await s3
+        .send(new DeleteObjectCommand(deleteImageParams))
+        .then(() => {
+          console.log("Objecto borrado exitosamente");
+        })
+        .catch((error) => {
+          console.error("Error al borrar el objeto:", error);
+        });
+    }
+
+    const deleteImg = await User.deleteProfileImg(id);
+    if (!deleteImg.url) {
+      console.log("delete image", deleteImg);
+    }
+  } catch (error) {
+    console.error("Error al borrar la imagen de perfil:", error);
     if (!error.statusCode) {
       error.statusCode = 500;
     }

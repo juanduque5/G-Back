@@ -96,6 +96,8 @@ router.put(
   authController.putImageUpdate
 );
 
+router.delete("/deleteProfileImage/:id", authController.deleteProfileImg);
+
 router.get("/dropdown", isAuth, authController.getIsAuthDrop);
 
 module.exports = router;
