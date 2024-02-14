@@ -90,7 +90,7 @@ router.put(
   authController.putProfileUpdate
 );
 
-router.put(
+router.put(  
   "/imageUpdate/:id",
   upload.array("imagen", 1),
   authController.putImageUpdate

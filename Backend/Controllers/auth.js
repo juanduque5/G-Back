@@ -440,7 +440,7 @@ exports.deleteProfileImg = async (req, res, next) => {
     const object = await User.findImageProfileById(id);
     const url = object.url;
     console.log("url", url);
-    console.log("imageName", imageName);
+    // console.log("imageName", imageName);
 
     if (url) {
       const deleteImageParams = {
@@ -462,6 +462,12 @@ exports.deleteProfileImg = async (req, res, next) => {
     if (!deleteImg.url) {
       console.log("delete image", deleteImg);
     }
+
+    res.status(200).json({
+      message: "Imagen de perfil borrada exitosamente",
+    });
+
+    console.log("Imagen de perfil borrada exitosamente");
   } catch (error) {
     console.error("Error al borrar la imagen de perfil:", error);
     if (!error.statusCode) {
