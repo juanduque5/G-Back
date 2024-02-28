@@ -40,11 +40,41 @@ Properties.insertData = (
     });
 };
 
-Properties.propertiesData = () => {
+Properties.propertiesDataIsAuth = (userId) => {
+  //Query to search for all properties, including the ones that a users saved as favorite
+  return db
+    .select(
+      "propiedades.*",
+      "imagenes.url as imageURL",
+      "favoritos.id as favorito_id"
+    )
+    .from("propiedades")
+    .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
+    .leftJoin("favoritos", function () {
+      this.on("propiedades.id", "=", "favoritos.propiedad_id").andOn(
+        "favoritos.user_id",
+        "=",
+        Number(userId)
+      ); // Convertir userId a número
+    })
+    .then((data) => {
+      // Manejar los datos recuperados exitosamente
+      return data;
+    })
+    .catch((error) => {
+      // Manejar los errores
+      console.error("Error en la consulta propertiesData2:", error);
+      throw error;
+    });
+};
+
+Properties.propertiesDataNoAuth = () => {
+  //if a user is not authenticated, it will just search for all the properties
   return db
     .select("propiedades.*", "imagenes.url as imageURL")
     .from("propiedades")
     .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
+
     .then((data) => {
       // console.log("todas las propiedades:", data); // Aquí obtienes los registros de propiedades con las URLs
       return data;
@@ -56,14 +86,17 @@ Properties.propertiesData = () => {
 };
 
 Properties.propertyById = (id) => {
+  //Find property by id
   return db("propiedades").where("id", id).first();
 };
 
 Properties.userPropertiesById = (id) => {
+  //Find all properties related to an user
   return db("propiedades").select("*").where("user_id", id);
 };
 
 Properties.insertImage = (id, url) => {
+  //insert an image url and associate it with a property id
   return db("imagenes")
     .returning("*")
     .insert({
@@ -81,6 +114,7 @@ Properties.insertImage = (id, url) => {
 };
 
 Properties.searchImagesById = (id) => {
+  //Find all urls that have a property id
   return db
     .select("imagenes.url as imageURL.")
     .from("propiedades")
@@ -106,6 +140,37 @@ Properties.propertiesInfoAndImagesById = (id) => {
     .then((data) => {
       // console.log("todas las propiedades:", data); // Aquí obtienes los registros de propiedades con las URLs
       return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: todas las propiedades:", error);
+      throw error;
+    });
+};
+
+Properties.propertiesAddFavoritesByUserId = (userId, propertyId) => {
+  return db("favoritos")
+    .returning("*")
+    .insert({
+      user_id: userId,
+      propiedad_id: propertyId,
+    })
+    .then((result) => {
+      // console.log("todas las propiedades:", data); // Aquí obtienes los registros de propiedades con las URLs
+      return result[0];
+    })
+    .catch((error) => {
+      console.error("ERROR: todas las propiedades:", error);
+      throw error;
+    });
+};
+
+Properties.propertiesDeleteFavoritesByUserId = (userId, propertyId) => {
+  return db("favoritos")
+    .where("user_id", Number(userId))
+    .andWhere("propiedad_id", Number(propertyId))
+    .del()
+    .then((result) => {
+      return result;
     })
     .catch((error) => {
       console.error("ERROR: todas las propiedades:", error);

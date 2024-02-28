@@ -141,37 +141,64 @@ exports.postProperties = async (req, res, next) => {
 };
 
 exports.getInfo = async (req, res, next) => {
-  console.log("se llamo aquii");
-  let element;
+  const { userId, isAuth } = req.params;
+  console.log("isAuth && userI", isAuth, userId);
+  // let element;
   try {
-    const allProperties = await Properties.propertiesData();
-    if (!allProperties) {
-      const error = new Error("ERROR: All property data");
-      error.statusCode = 500;
-      throw error;
+    // const allProperties = await Properties.propertiesData();
+
+    if (isAuth === "true" && !isNaN(userId)) {
+      const allProperties2 = await Properties.propertiesDataIsAuth(userId);
+      if (!allProperties2) {
+        const error = new Error("ERROR: All property data");
+        error.statusCode = 500;
+        throw error;
+      }
+      console.log("Properties2", allProperties2);
+      const newProperties = allProperties2.filter((obj, index) => {
+        return (
+          index === allProperties2.findIndex((index) => index.id === obj.id)
+        );
+      });
+      // console.log("all properties API:", newProperties);
+      const updatedProperties = newProperties.map((property) => {
+        return {
+          ...property,
+          imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
+        };
+      });
+      console.log("updatedProperties Auth API:", updatedProperties);
+      res.status(200).json({
+        message: "All property data successfully sent",
+        data: updatedProperties,
+      });
+    } else {
+      console.log("user_id", userId);
+      const allProperties = await Properties.propertiesDataNoAuth();
+      if (!allProperties) {
+        const error = new Error("ERROR: All property data");
+        error.statusCode = 500;
+        throw error;
+      }
+      // console.log("Properties", allProperties);
+      const newProperties = allProperties.filter((obj, index) => {
+        return (
+          index === allProperties.findIndex((index) => index.id === obj.id)
+        );
+      });
+      // console.log("all properties API:", newProperties);
+      const updatedProperties = newProperties.map((property) => {
+        return {
+          ...property,
+          imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
+        };
+      });
+      console.log("updatedProperties NotAuth API:", updatedProperties);
+      res.status(200).json({
+        message: "All property data successfully sent",
+        data: updatedProperties,
+      });
     }
-
-    // console.log(allProperties);
-
-    const newProperties = allProperties.filter((obj, index) => {
-      return index === allProperties.findIndex((index) => index.id === obj.id);
-    });
-
-    // console.log("all properties API:", newProperties);
-
-    const updatedProperties = newProperties.map((property) => {
-      return {
-        ...property,
-        imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
-      };
-    });
-
-    // console.log("updatedProperties API:", updatedProperties);
-
-    res.status(200).json({
-      message: "All property data successfully sent",
-      data: updatedProperties,
-    });
   } catch (error) {
     console.error("Error in catch block:", error);
     if (!error.statusCode) {
@@ -256,6 +283,49 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
     });
 
     console.log("propertiesById were successfully sent ");
+  } catch (error) {
+    console.error("Error in catch block propertyById:", error);
+    if (!error.statusCode) {
+      error.statusCode = 500;
+      next(error);
+    }
+  }
+};
+
+exports.postFavorites = async (req, res, next) => {
+  try {
+    const { propertyId, userId } = req.params;
+
+    if (req.method === "POST") {
+      const favorites = await Properties.propertiesAddFavoritesByUserId(
+        userId,
+        propertyId
+      );
+      if (!favorites) {
+        const error = new Error("ERROR: All property data");
+        error.statusCode = 500;
+        throw error;
+      }
+
+      console.log("Added to favorites", favorites);
+      res.status(200).json({ message: "Property marked as favorite" });
+    } else if (req.method === "DELETE") {
+      const favorites = await Properties.propertiesDeleteFavoritesByUserId(
+        userId,
+        propertyId
+      );
+      if (!favorites) {
+        const error = new Error("ERROR: All property data");
+        error.statusCode = 500;
+        throw error;
+      }
+
+      console.log("Deleted from favorites", favorites);
+      res.status(200).json({ message: "Property removed from favorites" });
+    } else {
+      // Método HTTP no soportado
+      res.status(405).json({ message: "Method Not Allowed" });
+    }
   } catch (error) {
     console.error("Error in catch block propertyById:", error);
     if (!error.statusCode) {

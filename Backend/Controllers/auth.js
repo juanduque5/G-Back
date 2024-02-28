@@ -77,12 +77,12 @@ exports.postSignup = (req, res, next) => {
       console.log("creado con éxito", newUser);
 
       // Enviar correo electrónico y devolver la promesa del envío del correo
-      return transporter.sendMail({
-        to: email,
-        from: "onmygrind1219@gmail.com",
-        subject: "Signup succeeded!",
-        html: "<h1>You've successfully signed up!</h1>",
-      });
+      // return transporter.sendMail({
+      //   to: email,
+      //   from: "onmygrind1219@gmail.com",
+      //   subject: "Signup succeeded!",
+      //   html: "<h1>You've successfully signed up!</h1>",
+      // });
     })
     .then(() => {
       // Responder con éxito y el usuario creado
