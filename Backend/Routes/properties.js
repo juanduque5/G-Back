@@ -50,4 +50,9 @@ router.get("/infoById/:id", properController.getInfoById);
 
 router.get("/allPropertiesByUser/:id", properController.getAllPropertiesByUser);
 
+router.get(
+  "/allFavoritePropertiesByUser/:userId",
+  properController.getFavoritePropertiesByUser
+);
+
 module.exports = router;

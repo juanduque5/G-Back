@@ -178,4 +178,25 @@ Properties.propertiesDeleteFavoritesByUserId = (userId, propertyId) => {
     });
 };
 
+Properties.allFavoritePropertiesByUserId = (user_id) => {
+  return db
+    .select(
+      db.raw("DISTINCT propiedades.*"),
+      "imagenes.url as imageURL",
+      "favoritos.id as favorito_id"
+    )
+    .from("propiedades")
+    .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
+    .leftJoin("favoritos", "propiedades.id", "favoritos.propiedad_id")
+    .where("favoritos.user_id", user_id)
+    .then((data) => {
+      // console.log("favorites:", data); // Aquí obtienes los registros de propiedades con las URLs
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: todas las propiedades:", error);
+      throw error;
+    });
+};
+
 module.exports = Properties;

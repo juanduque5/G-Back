@@ -154,7 +154,7 @@ exports.getInfo = async (req, res, next) => {
         error.statusCode = 500;
         throw error;
       }
-      console.log("Properties2", allProperties2);
+      // console.log("Properties2", allProperties2);
       const newProperties = allProperties2.filter((obj, index) => {
         return (
           index === allProperties2.findIndex((index) => index.id === obj.id)
@@ -167,7 +167,7 @@ exports.getInfo = async (req, res, next) => {
           imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
         };
       });
-      console.log("updatedProperties Auth API:", updatedProperties);
+      // console.log("updatedProperties Auth API:", updatedProperties);
       res.status(200).json({
         message: "All property data successfully sent",
         data: updatedProperties,
@@ -193,7 +193,7 @@ exports.getInfo = async (req, res, next) => {
           imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
         };
       });
-      console.log("updatedProperties NotAuth API:", updatedProperties);
+      // console.log("updatedProperties NotAuth API:", updatedProperties);
       res.status(200).json({
         message: "All property data successfully sent",
         data: updatedProperties,
@@ -211,7 +211,10 @@ exports.getInfo = async (req, res, next) => {
 exports.getInfoById = async (req, res, next) => {
   try {
     const { id } = req.params;
+    console.log(id);
     const propertyById = await Properties.propertyById(id);
+    console.log("propertyById", propertyById);
+
     if (!propertyById) {
       const error = new Error("ERROR: PropertyById");
       error.statusCode = 500;
@@ -326,6 +329,45 @@ exports.postFavorites = async (req, res, next) => {
       // Método HTTP no soportado
       res.status(405).json({ message: "Method Not Allowed" });
     }
+  } catch (error) {
+    console.error("Error in catch block propertyById:", error);
+    if (!error.statusCode) {
+      error.statusCode = 500;
+      next(error);
+    }
+  }
+};
+
+// getFavoritePropertiesByUser;
+
+exports.getFavoritePropertiesByUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const favoriteProperties = await Properties.allFavoritePropertiesByUserId(
+      userId
+    );
+    if (!favoriteProperties) {
+      const error = new Error("ERROR: Not favorite properties returned");
+      error.statusCode = 500;
+      throw error;
+    }
+    console.log("favorite properties:", favoriteProperties);
+
+    const updatedProperties = favoriteProperties.map((property) => {
+      return {
+        ...property,
+        imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
+      };
+    });
+    console.log("updatedFavorite properties:", updatedProperties);
+
+    res
+      .status(200)
+      .json({
+        message: "favorites by user successfully sent",
+        favoriteProperties: updatedProperties,
+      });
   } catch (error) {
     console.error("Error in catch block propertyById:", error);
     if (!error.statusCode) {
