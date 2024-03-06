@@ -362,17 +362,33 @@ exports.getFavoritePropertiesByUser = async (req, res, next) => {
     });
     console.log("updatedFavorite properties:", updatedProperties);
 
-    res
-      .status(200)
-      .json({
-        message: "favorites by user successfully sent",
-        favoriteProperties: updatedProperties,
-      });
+    res.status(200).json({
+      message: "favorites by user successfully sent",
+      favoriteProperties: updatedProperties,
+    });
   } catch (error) {
     console.error("Error in catch block propertyById:", error);
     if (!error.statusCode) {
       error.statusCode = 500;
       next(error);
     }
+  }
+};
+
+exports.getMap = async (req, res, next) => {
+  const { input } = req.query;
+  console.log(input);
+  const key = "AIzaSyDjvgyFvCgkaXNyN3FzsVsAqGj5H87BCcI";
+  const url = `https://maps.googleapis.com/maps/api/place/queryautocomplete/json?input=${encodeURIComponent(
+    input
+  )}&key=${key}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Error message from autoComplete:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };

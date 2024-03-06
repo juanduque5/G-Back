@@ -50,6 +50,8 @@ router.get("/infoById/:id", properController.getInfoById);
 
 router.get("/allPropertiesByUser/:id", properController.getAllPropertiesByUser);
 
+router.get("/maps/api/place/autocomplete/json", properController.getMap);
+
 router.get(
   "/allFavoritePropertiesByUser/:userId",
   properController.getFavoritePropertiesByUser
