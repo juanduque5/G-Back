@@ -52,6 +52,8 @@ router.get("/allPropertiesByUser/:id", properController.getAllPropertiesByUser);
 
 router.get("/maps/api/place/autocomplete/json", properController.getMap);
 
+router.get("/maps/api/geocode/json", properController.getLocation);
+
 router.get(
   "/allFavoritePropertiesByUser/:userId",
   properController.getFavoritePropertiesByUser

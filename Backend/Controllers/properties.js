@@ -21,6 +21,7 @@ const awsAccess = process.env.AWS_ACCESS_KEY_ID;
 const awsSecret = process.env.AWS_SECRET_ACCESS_KEY;
 const awsRegion = process.env.AWS_REGION;
 const s3Bucket = process.env.S3_BUCKET;
+const geoKey = process.env.GEO_KEY;
 
 const s3 = new S3Client({
   credentials: {
@@ -378,7 +379,7 @@ exports.getFavoritePropertiesByUser = async (req, res, next) => {
 exports.getMap = async (req, res, next) => {
   const { input } = req.query;
   console.log(input);
-  const key = "AIzaSyDjvgyFvCgkaXNyN3FzsVsAqGj5H87BCcI";
+  const key = geoKey;
   const url = `https://maps.googleapis.com/maps/api/place/queryautocomplete/json?input=${encodeURIComponent(
     input
   )}&key=${key}`;
@@ -387,6 +388,23 @@ exports.getMap = async (req, res, next) => {
     const response = await fetch(url);
     const data = await response.json();
     res.json(data);
+  } catch (error) {
+    console.error("Error message from autoComplete:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getLocation = async (req, res, next) => {
+  const { place_id } = req.query;
+  console.log(place_id);
+  const key = geoKey;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?place_id=${place_id}&key=${key}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log(data.results[0].geometry.location);
+    res.json(data.results[0].geometry.location);
   } catch (error) {
     console.error("Error message from autoComplete:", error);
     res.status(500).json({ error: "Internal Server Error" });
