@@ -181,16 +181,45 @@ Properties.propertiesDeleteFavoritesByUserId = (userId, propertyId) => {
 Properties.allFavoritePropertiesByUserId = (user_id) => {
   return db
     .select(
-      db.raw("DISTINCT propiedades.*"),
+      "propiedades.id",
+      "propiedades.user_id",
+      "propiedades.ciudad",
+      "propiedades.barrio",
+      "propiedades.description",
+      "propiedades.banos",
+      "propiedades.habitaciones",
+      "propiedades.area",
+      "propiedades.estado",
+      "propiedades.tipo",
+      "propiedades.estacionamientos",
+      "propiedades.uso",
       "imagenes.url as imageURL",
       "favoritos.id as favorito_id"
     )
-    .from("propiedades")
+    .from(function () {
+      this.select(
+        "id",
+        "user_id",
+        "ciudad",
+        "barrio",
+        "description",
+        "banos",
+        "habitaciones",
+        "area",
+        "estado",
+        "tipo",
+        "estacionamientos",
+        "uso"
+      )
+        .from("propiedades")
+        .distinct()
+        .as("propiedades");
+    })
     .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
     .leftJoin("favoritos", "propiedades.id", "favoritos.propiedad_id")
     .where("favoritos.user_id", user_id)
     .then((data) => {
-      // console.log("favorites:", data); // Aquí obtienes los registros de propiedades con las URLs
+      console.log("favorites:", data);
       return data;
     })
     .catch((error) => {

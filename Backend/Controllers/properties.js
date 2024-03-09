@@ -355,7 +355,13 @@ exports.getFavoritePropertiesByUser = async (req, res, next) => {
     }
     console.log("favorite properties:", favoriteProperties);
 
-    const updatedProperties = favoriteProperties.map((property) => {
+    const newProperties = favoriteProperties.filter((obj, index) => {
+      return (
+        index === favoriteProperties.findIndex((index) => index.id === obj.id)
+      );
+    });
+
+    const updatedProperties = newProperties.map((property) => {
       return {
         ...property,
         imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
