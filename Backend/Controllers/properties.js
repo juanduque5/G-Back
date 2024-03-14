@@ -22,6 +22,7 @@ const awsSecret = process.env.AWS_SECRET_ACCESS_KEY;
 const awsRegion = process.env.AWS_REGION;
 const s3Bucket = process.env.S3_BUCKET;
 const geoKey = process.env.GEO_KEY;
+const mapId = process.env.MAP_ID;
 
 const s3 = new S3Client({
   credentials: {
@@ -382,6 +383,7 @@ exports.getFavoritePropertiesByUser = async (req, res, next) => {
   }
 };
 
+//Getting cities from googleapi for the autocomplete
 exports.getMap = async (req, res, next) => {
   const { input } = req.query;
   console.log(input);
@@ -400,6 +402,7 @@ exports.getMap = async (req, res, next) => {
   }
 };
 
+//getting exactly location to find it on the map
 exports.getLocation = async (req, res, next) => {
   const { place_id } = req.query;
   console.log(place_id);
@@ -411,6 +414,48 @@ exports.getLocation = async (req, res, next) => {
     const data = await response.json();
     console.log(data.results[0].geometry.location);
     res.json(data.results[0].geometry.location);
+  } catch (error) {
+    console.error("Error message from autoComplete:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getDepartamentos = async (req, res, next) => {
+  try {
+    const departamentos = await Properties.allDepartamentos();
+    if (!departamentos) {
+      const error = new Error("ERROR: departamentos");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    const updatedDepartamentos = departamentos.map(
+      (departamentos) => departamentos.nombre
+    );
+
+    res.status(200).json({
+      departamentos: updatedDepartamentos,
+    });
+  } catch (error) {
+    console.error("Error from  departamento:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getMunicipios = async (req, res, next) => {
+  const { departamento } = req.params;
+  try {
+    const municipios = await Properties.findMunicipios(departamento);
+    if (!municipios) {
+      const error = new Error("ERROR: departamentos");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    const updatedMunicipios = municipios.map((municipios) => municipios.nombre);
+    res.status(200).json({
+      municipios: updatedMunicipios,
+    });
   } catch (error) {
     console.error("Error message from autoComplete:", error);
     res.status(500).json({ error: "Internal Server Error" });

@@ -178,6 +178,7 @@ Properties.propertiesDeleteFavoritesByUserId = (userId, propertyId) => {
     });
 };
 
+//returning all favorties properties by user id
 Properties.allFavoritePropertiesByUserId = (user_id) => {
   return db
     .select(
@@ -224,6 +225,33 @@ Properties.allFavoritePropertiesByUserId = (user_id) => {
     })
     .catch((error) => {
       console.error("ERROR: todas las propiedades:", error);
+      throw error;
+    });
+};
+
+Properties.allDepartamentos = () => {
+  return db("departamentos")
+    .select("nombre")
+    .then((data) => {
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: finding all departamentos");
+      throw error;
+    });
+};
+
+Properties.findMunicipios = (departamento) => {
+  return db
+    .select("municipios.nombre")
+    .from("municipios")
+    .leftJoin("departamentos", "municipios.departamento_id", "departamentos.id")
+    .where("departamentos.nombre", departamento)
+    .then((data) => {
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: finding all departamentos");
       throw error;
     });
 };

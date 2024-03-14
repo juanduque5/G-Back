@@ -54,6 +54,10 @@ router.get("/maps/api/place/autocomplete/json", properController.getMap);
 
 router.get("/maps/api/geocode/json", properController.getLocation);
 
+router.get("/departamentos/geo", properController.getDepartamentos);
+
+router.get("/municipios/:departamento", properController.getMunicipios);
+
 router.get(
   "/allFavoritePropertiesByUser/:userId",
   properController.getFavoritePropertiesByUser
