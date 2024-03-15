@@ -256,4 +256,23 @@ Properties.findMunicipios = (departamento) => {
     });
 };
 
+Properties.allCitiesAndLocalities = () => {
+  return db
+    .distinct()
+    .select(
+      "departamentos.nombre AS departamentos*",
+      "municipios.nombre AS municipios*"
+    )
+    .from("departamentos")
+    .leftJoin("municipios", "departamentos.id", "municipios.departamento_id")
+    .then((data) => {
+      // console.log("query autoComplete search cities", data);
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: query autocomplete guatemala cities");
+      throw error;
+    });
+};
+
 module.exports = Properties;

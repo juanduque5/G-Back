@@ -63,4 +63,9 @@ router.get(
   properController.getFavoritePropertiesByUser
 );
 
+router.get(
+  "/autocomplete/guatemala/",
+  properController.getAutoCompleteGuatemala
+);
+
 module.exports = router;

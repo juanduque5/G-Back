@@ -461,3 +461,47 @@ exports.getMunicipios = async (req, res, next) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.getAutoCompleteGuatemala = async (req, res, next) => {
+  const { searchTerm } = req.query;
+  // console.log("search", searchTerm);
+  console.log("search", searchTerm);
+  try {
+    const allPlaces = await Properties.allCitiesAndLocalities();
+    if (!allPlaces) {
+      const error = new Error(
+        "ERROR: (allPlaces) departamentos and municipios null"
+      );
+      error.statusCode = 500;
+      throw error;
+    }
+    // console.log("allPlaces", allPlaces
+    // const updatedPlaces = allPlaces.map(
+    //   (places) => places.municipios && places.departamentos
+    // );
+    // // Fusiona los arrays de departamentos y municipios en una sola lista
+    const lugares = allPlaces.reduce((acc, place) => {
+      acc.push(place["departamentos*"], place["municipios*"]);
+      return acc;
+    }, []);
+
+    //it filters cities and areas according to searchTeam
+    const result = lugares.filter(
+      (info) =>
+        info.toLocaleLowerCase().includes(searchTerm) && searchTerm.length >= 3
+    );
+    //It removes duplicates
+    const uniqueArray = result.filter(
+      (item, index) => result.indexOf(item) === index
+    );
+
+    console.log("updated result", uniqueArray);
+
+    res.status(200).json({
+      places: uniqueArray,
+    });
+  } catch (error) {
+    console.error("Error message from autoComplete allPlaces:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
