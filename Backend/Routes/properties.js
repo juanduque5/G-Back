@@ -15,12 +15,9 @@ const upload = multer({ storage: storage });
 
 //post properties
 
-// AKIATCKASWPFU6XQPBMB;
-// QVwQJV9TgRrslFYKvRQNspBdpYyJ7UDaV / VqhHIO;
-
 router.post(
   "/properties",
-  upload.array("imagen", 5), // Ajusta el nombre del campo según tu implementación
+  upload.array("imagen", 5), // up to 5 images can be obtained from front-end
 
   [
     body([

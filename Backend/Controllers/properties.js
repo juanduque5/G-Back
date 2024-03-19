@@ -22,7 +22,6 @@ const awsSecret = process.env.AWS_SECRET_ACCESS_KEY;
 const awsRegion = process.env.AWS_REGION;
 const s3Bucket = process.env.S3_BUCKET;
 const geoKey = process.env.GEO_KEY;
-const mapId = process.env.MAP_ID;
 
 const s3 = new S3Client({
   credentials: {
@@ -32,6 +31,7 @@ const s3 = new S3Client({
   region: awsRegion,
 });
 
+//Obtaining all property data from the front-end
 exports.postProperties = async (req, res, next) => {
   const files = req.files;
   let propertiesResult;
@@ -48,6 +48,12 @@ exports.postProperties = async (req, res, next) => {
   const tipo = req.body.tipo;
   const user_id = req.body.id;
   const uso = req.body.uso;
+  // const coordinates = req.body.coordinates;
+  const currency = req.body.currency;
+  const direccion = req.body.direccion;
+  const precio = req.body.precio;
+  const lat = req.body.lat;
+  const lng = req.body.lng;
 
   try {
     const errors = validationResult(req);
@@ -70,7 +76,12 @@ exports.postProperties = async (req, res, next) => {
       estado,
       tipo,
       estacionamientos,
-      uso
+      uso,
+      currency,
+      direccion,
+      precio,
+      lat,
+      lng
     );
 
     if (!propertiesResult) {
@@ -79,7 +90,7 @@ exports.postProperties = async (req, res, next) => {
       throw error;
     }
 
-    console.log("data inserted");
+    console.log("DATA SUCCESSFULLY INSERTED");
 
     // for (const file of files) {
     // }
@@ -93,6 +104,7 @@ exports.postProperties = async (req, res, next) => {
       .json({ message: "Error en el servidor" });
   }
 
+  //Saving images in AWS-S3
   for (const file of files) {
     const imageName = randomImageName();
     console.log("files details before:", file.mimetype);
@@ -142,6 +154,7 @@ exports.postProperties = async (req, res, next) => {
   }
 };
 
+//Getting all properties from database
 exports.getInfo = async (req, res, next) => {
   const { userId, isAuth } = req.params;
   console.log("isAuth && userI", isAuth, userId);
@@ -210,6 +223,7 @@ exports.getInfo = async (req, res, next) => {
   }
 };
 
+//Finding properties using the user id
 exports.getInfoById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -249,6 +263,7 @@ exports.getInfoById = async (req, res, next) => {
   }
 };
 
+//Finding images and properties using user id
 exports.getAllPropertiesByUser = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -297,6 +312,7 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
   }
 };
 
+//Finding all favorite properties by user id
 exports.postFavorites = async (req, res, next) => {
   try {
     const { propertyId, userId } = req.params;
@@ -341,7 +357,6 @@ exports.postFavorites = async (req, res, next) => {
 };
 
 // getFavoritePropertiesByUser;
-
 exports.getFavoritePropertiesByUser = async (req, res, next) => {
   try {
     const { userId } = req.params;
@@ -383,7 +398,7 @@ exports.getFavoritePropertiesByUser = async (req, res, next) => {
   }
 };
 
-//Getting cities from googleapi for the autocomplete
+//Getting cities from GoogleAPI for autocomplete
 exports.getMap = async (req, res, next) => {
   const { input } = req.query;
   console.log(input);
@@ -420,6 +435,7 @@ exports.getLocation = async (req, res, next) => {
   }
 };
 
+//Obtaining all cities from Guatemala
 exports.getDepartamentos = async (req, res, next) => {
   try {
     const departamentos = await Properties.allDepartamentos();
@@ -442,6 +458,7 @@ exports.getDepartamentos = async (req, res, next) => {
   }
 };
 
+//Obtaining all cities from localities
 exports.getMunicipios = async (req, res, next) => {
   const { departamento } = req.params;
   try {
@@ -462,6 +479,7 @@ exports.getMunicipios = async (req, res, next) => {
   }
 };
 
+//Sending cities and localities data in just one array without duplicates
 exports.getAutoCompleteGuatemala = async (req, res, next) => {
   const { searchTerm } = req.query;
   // console.log("search", searchTerm);

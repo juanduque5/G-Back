@@ -13,7 +13,12 @@ Properties.insertData = (
   estado,
   tipo,
   estacionamientos,
-  uso
+  uso,
+  currency,
+  direccion,
+  precio,
+  lat,
+  lng
 ) => {
   return db("propiedades")
     .returning("*")
@@ -29,13 +34,18 @@ Properties.insertData = (
       tipo: tipo,
       estacionamientos: estacionamientos,
       uso: uso,
+      currency: currency,
+      direccion: direccion,
+      precio: precio,
+      latitud: lat,
+      longitud: lng,
     })
     .then((result) => {
       return result[0];
     })
     .catch((error) => {
       // manejar el error aquí
-      console.error("Error al insertar en propiedades:", error);
+      console.error("Error: inserting property data", error);
       throw error; // puedes personalizar la respuesta de error según tus necesidades
     });
 };
@@ -87,7 +97,19 @@ Properties.propertiesDataNoAuth = () => {
 
 Properties.propertyById = (id) => {
   //Find property by id
-  return db("propiedades").where("id", id).first();
+  return db("propiedades")
+    .select("propiedades.*", "favoritos.propiedad_id")
+    .from("propiedades")
+    .leftJoin("favoritos", "propiedades.id", "favoritos.propiedad_id")
+    .where("propiedades.id", id)
+    .then((data) => {
+      // Aquí tendrás acceso a todas las columnas de propiedades y solo la columna propiedad_id de favoritos
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: properties by id ", error);
+      throw error;
+    });
 };
 
 Properties.userPropertiesById = (id) => {
