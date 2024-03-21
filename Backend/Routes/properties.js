@@ -65,4 +65,6 @@ router.get(
   properController.getAutoCompleteGuatemala
 );
 
+router.get("/homeSearch", properController.getHomeSearch);
+
 module.exports = router;

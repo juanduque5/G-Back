@@ -523,3 +523,15 @@ exports.getAutoCompleteGuatemala = async (req, res, next) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+//handle search from home
+exports.getHomeSearch = async (req, res, next) => {
+  const searchData = req.query;
+
+  try {
+    console.log(searchData);
+  } catch (error) {
+    console.error("Error message from autoComplete:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

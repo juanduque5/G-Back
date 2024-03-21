@@ -98,7 +98,7 @@ Properties.propertiesDataNoAuth = () => {
 Properties.propertyById = (id) => {
   //Find property by id
   return db("propiedades")
-    .select("propiedades.*", "favoritos.propiedad_id")
+    .select("propiedades.*", "favoritos.propiedad_id as Favorite_id")
     .from("propiedades")
     .leftJoin("favoritos", "propiedades.id", "favoritos.propiedad_id")
     .where("propiedades.id", id)
