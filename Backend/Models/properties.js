@@ -251,6 +251,7 @@ Properties.allFavoritePropertiesByUserId = (user_id) => {
     });
 };
 
+//Find all cities
 Properties.allDepartamentos = () => {
   return db("departamentos")
     .select("nombre")
@@ -263,6 +264,7 @@ Properties.allDepartamentos = () => {
     });
 };
 
+//Find all localities acording to its city
 Properties.findMunicipios = (departamento) => {
   return db
     .select("municipios.nombre")
@@ -278,6 +280,7 @@ Properties.findMunicipios = (departamento) => {
     });
 };
 
+//Find both
 Properties.allCitiesAndLocalities = () => {
   return db
     .distinct()
@@ -293,6 +296,53 @@ Properties.allCitiesAndLocalities = () => {
     })
     .catch((error) => {
       console.error("ERROR: query autocomplete guatemala cities");
+      throw error;
+    });
+};
+
+//handle homeSearch
+Properties.homeSearch = (
+  casa,
+  apartamento,
+  local,
+  lote,
+  venta,
+  renta,
+  location
+) => {
+  return db
+    .distinct()
+    .select("propiedades.*")
+    .from("propiedades")
+    .where((builder) => {
+      if (location.trim() !== "") {
+        builder.where("direccion", location);
+      }
+      if (casa !== false) {
+        builder.where("tipo", casa);
+      }
+      if (apartamento !== false) {
+        builder.where("tipo", apartamento);
+      }
+      if (local !== false) {
+        builder.where("tipo", local);
+      }
+      if (lote !== false) {
+        builder.where("tipo", lote);
+      }
+      if (venta !== false) {
+        builder.orWhere("uso", venta);
+      }
+      if (renta !== false) {
+        builder.orWhere("uso", renta);
+      }
+    })
+    .then((data) => {
+      console.log(data);
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: homeSearch");
       throw error;
     });
 };

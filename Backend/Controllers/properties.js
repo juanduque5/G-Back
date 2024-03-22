@@ -156,13 +156,13 @@ exports.postProperties = async (req, res, next) => {
 
 //Getting all properties from database
 exports.getInfo = async (req, res, next) => {
-  const { userId, isAuth } = req.params;
-  console.log("isAuth && userI", isAuth, userId);
+  const { userId, token } = req.params;
+  console.log("isAuth && userI", token, userId);
   // let element;
   try {
     // const allProperties = await Properties.propertiesData();
 
-    if (isAuth === "true" && !isNaN(userId)) {
+    if (token && !isNaN(userId)) {
       const allProperties2 = await Properties.propertiesDataIsAuth(userId);
       if (!allProperties2) {
         const error = new Error("ERROR: All property data");
@@ -527,9 +527,56 @@ exports.getAutoCompleteGuatemala = async (req, res, next) => {
 //handle search from home
 exports.getHomeSearch = async (req, res, next) => {
   const searchData = req.query;
+  const casa = req.query.casa === "true" ? "casa" : false;
+  const apartamento = req.query.apartamento === "true" ? "apartamento" : false;
+  const local = req.query.local ? "local" : false;
+  const lote = req.query.lote ? "lote" : false;
+  const venta = req.query.venta ? "venta" : false;
+  const renta = req.query.renta ? "renta" : false;
+  if (req.query["Venta y renta"] === true) {
+    venta = "venta";
+    renta = "renta";
+  }
+  const location = req.query.location;
+  const token = req.query.token;
 
   try {
-    console.log(searchData);
+    if (token === true) {
+      console.log(searchData);
+      console.log(token);
+    } else {
+      console.log(searchData);
+      console.log(
+        venta,
+        renta,
+        "lote",
+        lote,
+        "local",
+        local,
+        "apartamento",
+        apartamento,
+        "casa",
+        casa
+      );
+      const search = await Properties.homeSearch(
+        casa,
+        apartamento,
+        local,
+        lote,
+        venta,
+        renta,
+        location
+      );
+
+      if (!search) {
+        const error = new Error(
+          "ERROR: (allPlaces) departamentos and municipios null"
+        );
+        error.statusCode = 500;
+        throw error;
+      }
+      console.log("homeSearch", search);
+    }
   } catch (error) {
     console.error("Error message from autoComplete:", error);
     res.status(500).json({ error: "Internal Server Error" });

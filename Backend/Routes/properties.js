@@ -41,7 +41,7 @@ router
   .post(properController.postFavorites) // Manejar la solicitud POST para marcar como favorito
   .delete(properController.postFavorites);
 
-router.get("/info/:isAuth/:userId", properController.getInfo);
+router.get("/info/:token/:userId", properController.getInfo);
 
 router.get("/infoById/:id", properController.getInfoById);
 
