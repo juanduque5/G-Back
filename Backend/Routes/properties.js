@@ -22,8 +22,8 @@ router.post(
   [
     body([
       "id",
-      "ciudad",
-      "barrio",
+      "departamento",
+      "municipio",
       "description",
       "banos",
       "habitaciones",

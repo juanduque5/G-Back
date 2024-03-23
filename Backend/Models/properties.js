@@ -4,8 +4,8 @@ const Properties = {};
 
 Properties.insertData = (
   id,
-  ciudad,
-  barrio,
+  departamento,
+  municipio,
   description,
   banos,
   habitaciones,
@@ -24,8 +24,8 @@ Properties.insertData = (
     .returning("*")
     .insert({
       user_id: id,
-      ciudad: ciudad,
-      barrio: barrio,
+      departamento: departamento,
+      municipio: municipio,
       description: description,
       banos: banos,
       habitaciones: habitaciones,
@@ -316,27 +316,32 @@ Properties.homeSearch = (
     .from("propiedades")
     .where((builder) => {
       if (location.trim() !== "") {
-        builder.where("direccion", location);
-      }
-      if (casa !== false) {
-        builder.where("tipo", casa);
-      }
-      if (apartamento !== false) {
-        builder.where("tipo", apartamento);
-      }
-      if (local !== false) {
-        builder.where("tipo", local);
-      }
-      if (lote !== false) {
-        builder.where("tipo", lote);
-      }
-      if (venta !== false) {
-        builder.orWhere("uso", venta);
-      }
-      if (renta !== false) {
-        builder.orWhere("uso", renta);
+        builder.where("municipio", location);
       }
     })
+    .andWhere(function () {
+      if (casa !== false) {
+        this.orWhere("tipo", casa);
+      }
+      if (apartamento !== false) {
+        this.orWhere("tipo", apartamento);
+      }
+      if (local !== false) {
+        this.orWhere("tipo", local);
+      }
+      if (lote !== false) {
+        this.orWhere("tipo", lote);
+      }
+    })
+    .andWhere(function () {
+      if (venta !== false) {
+        this.orWhere("uso", venta);
+      }
+      if (renta !== false) {
+        this.orWhere("uso", renta);
+      }
+    })
+
     .then((data) => {
       console.log(data);
       return data;

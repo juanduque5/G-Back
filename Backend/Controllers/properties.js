@@ -37,8 +37,8 @@ exports.postProperties = async (req, res, next) => {
   let propertiesResult;
 
   // Guardar información en la base de datos
-  const ciudad = req.body.ciudad;
-  const barrio = req.body.barrio;
+  const departamento = req.body.departamento;
+  const municipio = req.body.municipio;
   const description = req.body.description;
   const habitaciones = req.body.habitaciones;
   const banos = req.body.banos;
@@ -67,8 +67,8 @@ exports.postProperties = async (req, res, next) => {
     // Insertar información en la base de datos para cada archivo
     propertiesResult = await Properties.insertData(
       user_id,
-      ciudad,
-      barrio,
+      departamento,
+      municipio,
       description,
       banos,
       habitaciones,
@@ -529,25 +529,26 @@ exports.getHomeSearch = async (req, res, next) => {
   const searchData = req.query;
   const casa = req.query.casa === "true" ? "casa" : false;
   const apartamento = req.query.apartamento === "true" ? "apartamento" : false;
-  const local = req.query.local ? "local" : false;
-  const lote = req.query.lote ? "lote" : false;
-  const venta = req.query.venta ? "venta" : false;
-  const renta = req.query.renta ? "renta" : false;
-  if (req.query["Venta y renta"] === true) {
-    venta = "venta";
-    renta = "renta";
-  }
+  const local = req.query.local === "true" ? "local" : false;
+  const lote = req.query.lote === "true" ? "lote" : false;
+  const venta =
+    req.query.venta === "true" || req.query.both === "true" ? "venta" : false;
+  const renta =
+    req.query.renta === "true" || req.query.both === "true" ? "renta" : false;
+
   const location = req.query.location;
   const token = req.query.token;
 
   try {
-    if (token === true) {
+    if (token === "true") {
       console.log(searchData);
       console.log(token);
     } else {
       console.log(searchData);
       console.log(
+        "venta",
         venta,
+        "renta",
         renta,
         "lote",
         lote,
@@ -556,7 +557,9 @@ exports.getHomeSearch = async (req, res, next) => {
         "apartamento",
         apartamento,
         "casa",
-        casa
+        casa,
+        "location",
+        location
       );
       const search = await Properties.homeSearch(
         casa,
@@ -575,6 +578,10 @@ exports.getHomeSearch = async (req, res, next) => {
         error.statusCode = 500;
         throw error;
       }
+
+      res.status(200).json({
+        data: search,
+      });
       console.log("homeSearch", search);
     }
   } catch (error) {
