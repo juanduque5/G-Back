@@ -53,6 +53,7 @@ Properties.insertData = (
 Properties.propertiesDataIsAuth = (userId) => {
   //Query to search for all properties, including the ones that a users saved as favorite
   return db
+    .distinct()
     .select(
       "propiedades.*",
       "imagenes.url as imageURL",
@@ -81,6 +82,7 @@ Properties.propertiesDataIsAuth = (userId) => {
 Properties.propertiesDataNoAuth = () => {
   //if a user is not authenticated, it will just search for all the properties
   return db
+    .distinct()
     .select("propiedades.*", "imagenes.url as imageURL")
     .from("propiedades")
     .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
@@ -312,8 +314,9 @@ Properties.homeSearch = (
 ) => {
   return db
     .distinct()
-    .select("propiedades.*")
+    .select("propiedades.*", "imagenes.url as imageURL") // Aquí se agrega la selección de columnas
     .from("propiedades")
+    .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
     .where((builder) => {
       if (location.trim() !== "") {
         builder.where("municipio", location);
@@ -342,6 +345,67 @@ Properties.homeSearch = (
       }
     })
 
+    .then((data) => {
+      console.log(data);
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: homeSearch");
+      throw error;
+    });
+};
+
+//HomeSearch is Auth
+Properties.homeSearchIsAuth = (
+  casa,
+  apartamento,
+  local,
+  lote,
+  venta,
+  renta,
+  location,
+  id
+) => {
+  return db
+    .distinct()
+    .select(
+      "propiedades.*",
+      "imagenes.url as imageURL",
+      "favoritos.id as favorito_id" // Agregar la selección de la columna de favoritos
+    )
+    .from("propiedades")
+    .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
+    .leftJoin("favoritos", function () {
+      this.on("propiedades.id", "=", "favoritos.propiedad_id") // Unir la tabla de favoritos
+        .andOn("favoritos.user_id", "=", Number(id)); // Filtrar por usuario
+    })
+    .where((builder) => {
+      if (location.trim() !== "") {
+        builder.where("municipio", location);
+      }
+    })
+    .andWhere(function () {
+      if (casa !== false) {
+        this.orWhere("tipo", casa);
+      }
+      if (apartamento !== false) {
+        this.orWhere("tipo", apartamento);
+      }
+      if (local !== false) {
+        this.orWhere("tipo", local);
+      }
+      if (lote !== false) {
+        this.orWhere("tipo", lote);
+      }
+    })
+    .andWhere(function () {
+      if (venta !== false) {
+        this.orWhere("uso", venta);
+      }
+      if (renta !== false) {
+        this.orWhere("uso", renta);
+      }
+    })
     .then((data) => {
       console.log(data);
       return data;

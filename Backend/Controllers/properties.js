@@ -527,23 +527,76 @@ exports.getAutoCompleteGuatemala = async (req, res, next) => {
 //handle search from home
 exports.getHomeSearch = async (req, res, next) => {
   const searchData = req.query;
-  const casa = req.query.casa === "true" ? "casa" : false;
-  const apartamento = req.query.apartamento === "true" ? "apartamento" : false;
+  const casa = req.query.casa === "true" ? "house" : false;
+  const apartamento = req.query.apartamento === "true" ? "apartment" : false;
   const local = req.query.local === "true" ? "local" : false;
   const lote = req.query.lote === "true" ? "lote" : false;
   const venta =
-    req.query.venta === "true" || req.query.both === "true" ? "venta" : false;
+    req.query.venta === "true" || req.query.both === "true" ? "sell" : false;
   const renta =
-    req.query.renta === "true" || req.query.both === "true" ? "renta" : false;
+    req.query.renta === "true" || req.query.both === "true" ? "rent" : false;
 
   const location = req.query.location;
   const token = req.query.token;
+  const id = req.query.id;
 
   try {
+    //if token true, then search for properties liked by user
     if (token === "true") {
-      console.log(searchData);
-      console.log(token);
+      console.log(
+        "venta",
+        venta,
+        "renta",
+        renta,
+        "lote",
+        lote,
+        "local",
+        local,
+        "apartamento",
+        apartamento,
+        "casa",
+        casa,
+        "location",
+        location,
+        "id",
+        id
+      );
+      const search = await Properties.homeSearchIsAuth(
+        casa,
+        apartamento,
+        local,
+        lote,
+        venta,
+        renta,
+        location,
+        id
+      );
+
+      if (!search) {
+        const error = new Error(
+          "ERROR: (allPlaces) departamentos and municipios null"
+        );
+        error.statusCode = 500;
+        throw error;
+      }
+
+      const newProperties = search.filter((obj, index) => {
+        return index === search.findIndex((index) => index.id === obj.id);
+      });
+
+      const updatedProperties = newProperties.map((property) => {
+        return {
+          ...property,
+          imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
+        };
+      });
+
+      res.status(200).json({
+        data: updatedProperties,
+      });
+      console.log("homeSearch", updatedProperties);
     } else {
+      //else
       console.log(searchData);
       console.log(
         "venta",
@@ -579,13 +632,24 @@ exports.getHomeSearch = async (req, res, next) => {
         throw error;
       }
 
-      res.status(200).json({
-        data: search,
+      const newProperties = search.filter((obj, index) => {
+        return index === search.findIndex((index) => index.id === obj.id);
       });
-      console.log("homeSearch", search);
+
+      const updatedProperties = newProperties.map((property) => {
+        return {
+          ...property,
+          imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
+        };
+      });
+
+      res.status(200).json({
+        data: updatedProperties,
+      });
+      console.log("homeSearch", updatedProperties);
     }
   } catch (error) {
-    console.error("Error message from autoComplete:", error);
+    console.error("Error message from homeSearch Filter:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
