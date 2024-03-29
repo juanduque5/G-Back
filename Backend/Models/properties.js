@@ -208,8 +208,8 @@ Properties.allFavoritePropertiesByUserId = (user_id) => {
     .select(
       "propiedades.id",
       "propiedades.user_id",
-      "propiedades.ciudad",
-      "propiedades.barrio",
+      "propiedades.departamento",
+      "propiedades.municipio",
       "propiedades.description",
       "propiedades.banos",
       "propiedades.habitaciones",
@@ -218,6 +218,7 @@ Properties.allFavoritePropertiesByUserId = (user_id) => {
       "propiedades.tipo",
       "propiedades.estacionamientos",
       "propiedades.uso",
+      "propiedades.precio",
       "imagenes.url as imageURL",
       "favoritos.id as favorito_id"
     )
@@ -225,8 +226,8 @@ Properties.allFavoritePropertiesByUserId = (user_id) => {
       this.select(
         "id",
         "user_id",
-        "ciudad",
-        "barrio",
+        "departamento",
+        "municipio",
         "description",
         "banos",
         "habitaciones",
@@ -234,10 +235,10 @@ Properties.allFavoritePropertiesByUserId = (user_id) => {
         "estado",
         "tipo",
         "estacionamientos",
-        "uso"
+        "uso",
+        "precio"
       )
         .from("propiedades")
-        .distinct()
         .as("propiedades");
     })
     .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
