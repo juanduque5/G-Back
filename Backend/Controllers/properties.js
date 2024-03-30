@@ -535,10 +535,49 @@ exports.getHomeSearch = async (req, res, next) => {
     req.query.venta === "true" || req.query.both === "true" ? "sell" : false;
   const renta =
     req.query.renta === "true" || req.query.both === "true" ? "rent" : false;
-
+  const bathrooms = !isNaN(req.query.bathrooms) ? req.query.bathrooms : false;
+  const bedrooms = !isNaN(req.query.bedrooms) ? req.query.bedrooms : false;
+  const price = req.query.price ? req.query.price : false;
   const location = req.query.location;
   const token = req.query.token;
   const id = req.query.id;
+
+  let minPrice, maxPrice;
+
+  if (price === "0 - 50,000") {
+    minPrice = 0;
+    maxPrice = 50000;
+  } else if (price === "50,000 - 100,000") {
+    minPrice = 50000;
+    maxPrice = 100000;
+  } else if (price === "100,000 - 150,000") {
+    minPrice = 100000;
+    maxPrice = 150000;
+  } else if (price === "150,000 - 200,000") {
+    minPrice = 150000;
+    maxPrice = 200000;
+  } else if (price === "200,000 - 250,000") {
+    minPrice = 200000;
+    maxPrice = 250000;
+  } else if (price === "250,000 - 300,000") {
+    minPrice = 250000;
+    maxPrice = 300000;
+  } else if (price === "300,000 - 350,000") {
+    minPrice = 300000;
+    maxPrice = 350000;
+  } else if (price === "350,000 - 400,000") {
+    minPrice = 350000;
+    maxPrice = 400000;
+  } else if (price === "400,000 - 450,000") {
+    minPrice = 400000;
+    maxPrice = 450000;
+  } else if (price === "450,000 - 500,000") {
+    minPrice = 450000;
+    maxPrice = 500000;
+  } else {
+    minPrice = false;
+    maxPrice = false;
+  }
 
   try {
     //if token true, then search for properties liked by user
@@ -559,7 +598,9 @@ exports.getHomeSearch = async (req, res, next) => {
         "location",
         location,
         "id",
-        id
+        id,
+        "token",
+        token
       );
       const search = await Properties.homeSearchIsAuth(
         casa,
@@ -569,7 +610,11 @@ exports.getHomeSearch = async (req, res, next) => {
         venta,
         renta,
         location,
-        id
+        id,
+        bathrooms,
+        bedrooms,
+        minPrice,
+        maxPrice
       );
 
       if (!search) {
@@ -621,7 +666,11 @@ exports.getHomeSearch = async (req, res, next) => {
         lote,
         venta,
         renta,
-        location
+        location,
+        bathrooms,
+        bedrooms,
+        minPrice,
+        maxPrice
       );
 
       if (!search) {
@@ -646,7 +695,16 @@ exports.getHomeSearch = async (req, res, next) => {
       res.status(200).json({
         data: updatedProperties,
       });
-      console.log("homeSearch", updatedProperties);
+      // console.log("homeSearch", updatedProperties);
+      console.log(
+        "bed",
+        bedrooms,
+        "bathrooms",
+        bathrooms,
+        "price",
+        minPrice,
+        maxPrice
+      );
     }
   } catch (error) {
     console.error("Error message from homeSearch Filter:", error);

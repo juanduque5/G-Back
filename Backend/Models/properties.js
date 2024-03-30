@@ -303,7 +303,7 @@ Properties.allCitiesAndLocalities = () => {
     });
 };
 
-//handle homeSearch
+//handle homeSearch No Auth
 Properties.homeSearch = (
   casa,
   apartamento,
@@ -311,7 +311,11 @@ Properties.homeSearch = (
   lote,
   venta,
   renta,
-  location
+  location,
+  bathrooms,
+  bedrooms,
+  minPrice,
+  maxPrice
 ) => {
   return db
     .distinct()
@@ -345,6 +349,19 @@ Properties.homeSearch = (
         this.orWhere("uso", renta);
       }
     })
+    .andWhere(function () {
+      if (bathrooms !== false) {
+        this.where("banos", bathrooms);
+      }
+      if (bedrooms !== false) {
+        this.where("habitaciones", bedrooms);
+      }
+    })
+    .andWhere(function () {
+      if (minPrice !== false && maxPrice !== false) {
+        this.whereBetween("precio", [minPrice, maxPrice]);
+      }
+    })
 
     .then((data) => {
       console.log(data);
@@ -365,7 +382,11 @@ Properties.homeSearchIsAuth = (
   venta,
   renta,
   location,
-  id
+  id,
+  bathrooms,
+  bedrooms,
+  minPrice,
+  maxPrice
 ) => {
   return db
     .distinct()
@@ -405,6 +426,19 @@ Properties.homeSearchIsAuth = (
       }
       if (renta !== false) {
         this.orWhere("uso", renta);
+      }
+    })
+    .andWhere(function () {
+      if (bathrooms !== false) {
+        this.where("banos", bathrooms);
+      }
+      if (bedrooms !== false) {
+        this.where("habitaciones", bedrooms);
+      }
+    })
+    .andWhere(function () {
+      if (minPrice !== false && maxPrice !== false) {
+        this.whereBetween("precio", [minPrice, maxPrice]);
       }
     })
     .then((data) => {
