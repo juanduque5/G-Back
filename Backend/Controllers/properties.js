@@ -541,39 +541,41 @@ exports.getHomeSearch = async (req, res, next) => {
   const location = req.query.location;
   const token = req.query.token;
   const id = req.query.id;
+  const minPriceRenta = !isNaN(req.query.minPrice) ? req.query.minPrice : false;
+  const maxPriceRenta = !isNaN(req.query.maxPrice) ? req.query.maxPrice : false;
 
   let minPrice, maxPrice;
 
-  if (price === "0 - 50,000") {
+  //Setting price for sells
+  if (price === "0 - 100,000") {
     minPrice = 0;
-    maxPrice = 50000;
-  } else if (price === "50,000 - 100,000") {
-    minPrice = 50000;
     maxPrice = 100000;
-  } else if (price === "100,000 - 150,000") {
+  } else if (price === "100,000 - 200,000") {
     minPrice = 100000;
-    maxPrice = 150000;
-  } else if (price === "150,000 - 200,000") {
-    minPrice = 150000;
     maxPrice = 200000;
-  } else if (price === "200,000 - 250,000") {
+  } else if (price === "200,000 - 300,000") {
     minPrice = 200000;
-    maxPrice = 250000;
-  } else if (price === "250,000 - 300,000") {
-    minPrice = 250000;
     maxPrice = 300000;
-  } else if (price === "300,000 - 350,000") {
+  } else if (price === "300,000 - 400,000") {
     minPrice = 300000;
-    maxPrice = 350000;
-  } else if (price === "350,000 - 400,000") {
-    minPrice = 350000;
     maxPrice = 400000;
-  } else if (price === "400,000 - 450,000") {
+  } else if (price === "400,000 - 500,000") {
     minPrice = 400000;
-    maxPrice = 450000;
-  } else if (price === "450,000 - 500,000") {
-    minPrice = 450000;
     maxPrice = 500000;
+  } else if (price === "500,000+") {
+    minPrice = 500000;
+    maxPrice = 10000000;
+  } else if (
+    (minPriceRenta === "" || minPriceRenta >= 0) &&
+    maxPriceRenta > 0
+  ) {
+    if (minPriceRenta === "") {
+      minPrice = 0;
+      maxPrice = maxPriceRenta;
+    } else {
+      minPrice = minPriceRenta;
+      maxPrice = maxPriceRenta;
+    }
   } else {
     minPrice = false;
     maxPrice = false;
@@ -642,7 +644,7 @@ exports.getHomeSearch = async (req, res, next) => {
       console.log("homeSearch", updatedProperties);
     } else {
       //else
-      console.log(searchData);
+
       console.log(
         "venta",
         venta,
@@ -705,6 +707,7 @@ exports.getHomeSearch = async (req, res, next) => {
         minPrice,
         maxPrice
       );
+      console.log(searchData);
     }
   } catch (error) {
     console.error("Error message from homeSearch Filter:", error);
