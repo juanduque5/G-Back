@@ -269,7 +269,7 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
     const { id } = req.params;
     const propertiesById = await Properties.propertiesInfoAndImagesById(id);
 
-    if (!propertiesById || propertiesById.length === 0) {
+    if (!propertiesById) {
       const error = new Error("No properties found for the specified user ID");
       error.statusCode = 404; // Not Found
       throw error;
