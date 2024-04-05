@@ -432,7 +432,7 @@ Properties.homeSearchIsAuth = (
       if (bathrooms !== false) {
         this.where("banos", bathrooms);
       }
-      if (bedrooms !== false) {
+      if (bedrooms !== false) {    
         this.where("habitaciones", bedrooms);
       }
     })
