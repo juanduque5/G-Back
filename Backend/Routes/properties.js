@@ -36,6 +36,28 @@ router.post(
   properController.postProperties
 );
 
+//edit properties
+router.put(
+  "/edit",
+  upload.array("imagen", 5), // up to 5 images can be obtained from front-end
+
+  [
+    body([
+      "id",
+      "departamento",
+      "municipio",
+      "description",
+      "banos",
+      "habitaciones",
+      "area",
+      "estado",
+      "tipo",
+      "estacionamientos",
+    ]).notEmpty(),
+  ],
+  properController.putProperties
+);
+
 router
   .route("/favorites/:propertyId/:userId")
   .post(properController.postFavorites) // Manejar la solicitud POST para marcar como favorito
@@ -66,5 +88,7 @@ router.get(
 );
 
 router.get("/homeSearch", properController.getHomeSearch);
+
+router.delete("/deletePropertyById/:id", properController.deletePropertyById);
 
 module.exports = router;

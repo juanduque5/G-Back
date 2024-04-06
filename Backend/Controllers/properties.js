@@ -714,3 +714,169 @@ exports.getHomeSearch = async (req, res, next) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+//Edit property data
+exports.putProperties = async (req, res, next) => {
+  try {
+    const files = req.files;
+    console.log("body", req.body);
+    console.log("files", files);
+
+    const departamento = req.body.departamento;
+    const municipio = req.body.municipio;
+    const description = req.body.description;
+    const habitaciones = req.body.habitaciones;
+    const banos = req.body.banos;
+    const estacionamientos = req.body.estacionamientos;
+    const area = req.body.area;
+    const estado = req.body.estado;
+    const tipo = req.body.tipo;
+    const property_id = req.body.id;
+    const user_id = req.body.userId;
+    const uso = req.body.uso;
+    const deleteImg = req.body.delete;
+    const id = req.body.id;
+    const currency = req.body.currency;
+    const direccion = req.body.direccion;
+    const precio = req.body.precio;
+    const lat = req.body.lat;
+    const lng = req.body.lng;
+
+    let uniqueDel = [];
+    if (Array.isArray(deleteImg)) {
+      uniqueDel = deleteImg.map((url) => {
+        const parts = url.split("/");
+        return parts[parts.length - 1];
+      });
+    } else {
+      console.error("deleteImg no es un array");
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error("Validation failed");
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+
+    const propertiesResult = await Properties.updateData(
+      property_id,
+      user_id,
+      departamento,
+      municipio,
+      description,
+      banos,
+      habitaciones,
+      area,
+      estado,
+      estacionamientos,
+      currency,
+      direccion,
+      precio,
+      lat,
+      lng
+    );
+
+    if (!propertiesResult) {
+      throw new Error("ERROR: property data");
+    }
+
+    console.log("DATA SUCCESSFULLY INSERTED");
+
+    const responseMessages = [];
+
+    for (const deleteImages of uniqueDel) {
+      if (deleteImages) {
+        const deleteImageParams = {
+          Bucket: s3Bucket,
+          Key: deleteImages,
+        };
+
+        await s3
+          .send(new DeleteObjectCommand(deleteImageParams))
+          .then(() => {
+            console.log("Objecto borrado exitosamente en edit s3");
+            responseMessages.push(
+              "Property images successfully deleted in edit"
+            );
+          })
+          .catch((error) => {
+            console.error("Error al borrar el objeto en edit:", error);
+          });
+
+        const deleteImg = await Properties.deleteImagesEdit(id, deleteImages);
+        if (!deleteImg) {
+          console.log("delete image", deleteImg);
+        } else {
+          console.log(deleteImg);
+        }
+      }
+    }
+
+    for (const file of files) {
+      const imageName = randomImageName();
+      console.log("files details before:", file.mimetype);
+      const buffer = await sharp(file.buffer)
+        .toFormat("jpeg")
+        .jpeg({ quality: 50 })
+        .toBuffer();
+
+      console.log("Nombre del archivo original:", file.originalname);
+      const processedMimetype = await sharp(buffer)
+        .metadata()
+        .then((metadata) => metadata.format);
+      console.log("Files details after processing:");
+      console.log("Processed Mimetype:", processedMimetype);
+
+      const params = {
+        Bucket: s3Bucket,
+        Key: imageName,
+        Body: buffer,
+        ContentType: file.mimetype,
+      };
+
+      const command = new PutObjectCommand(params);
+
+      try {
+        await s3.send(command);
+        console.log("S3 successfully inserted");
+
+        const imageResult = await Properties.insertImage(id, imageName);
+
+        if (!imageResult) {
+          throw new Error("ERROR: image insert in edit");
+        }
+
+        console.log("image inserted in edit");
+        responseMessages.push("Property image successfully inserted");
+      } catch (error) {
+        console.error("Error al subir el archivo a S3:", error);
+        return res
+          .status(500)
+          .json({ message: "Error al subir archivos a S3" });
+      }
+    }
+
+    res.status(200).json({
+      message: "Operation successful",
+      details: responseMessages,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: "Error en el servidor" });
+  }
+};
+
+exports.deletePropertyById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+  } catch (error) {
+    console.error("Error:", error);
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: "Error en el servidor" });
+  }
+};

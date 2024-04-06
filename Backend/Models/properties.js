@@ -432,7 +432,7 @@ Properties.homeSearchIsAuth = (
       if (bathrooms !== false) {
         this.where("banos", bathrooms);
       }
-      if (bedrooms !== false) {    
+      if (bedrooms !== false) {
         this.where("habitaciones", bedrooms);
       }
     })
@@ -448,6 +448,73 @@ Properties.homeSearchIsAuth = (
     .catch((error) => {
       console.error("ERROR: homeSearch");
       throw error;
+    });
+};
+
+//Delete images in edit
+Properties.deleteImagesEdit = (id, url) => {
+  return db("imagenes")
+    .where({
+      propiedad_id: id,
+      url: url,
+    })
+    .del()
+    .then((numDeleted) => {
+      return numDeleted;
+    })
+    .catch((err) => {
+      console.error("Error al eliminar imagenes en edit:", err);
+    });
+};
+
+//Update property data
+Properties.updateData = (
+  propertyId,
+  user_id,
+  departamento,
+  municipio,
+  description,
+  banos,
+  habitaciones,
+  area,
+  estado,
+  tipo,
+  estacionamientos,
+  uso,
+  currency,
+  direccion,
+  precio,
+  lat,
+  lng
+) => {
+  return db("propiedades")
+    .where({ id: propertyId }) // Filtra la propiedad que deseas actualizar por su ID
+    .update({
+      user_id: user_id,
+      departamento: departamento,
+      municipio: municipio,
+      description: description,
+      banos: banos,
+      habitaciones: habitaciones,
+      area: area,
+      estado: estado,
+  
+      estacionamientos: estacionamientos,
+   
+      currency: currency,
+      direccion: direccion,
+      precio: precio,
+      latitud: lat,
+      longitud: lng,
+    })
+    .then(() => {
+      // No necesitas retornar nada en un update exitoso, pero puedes hacerlo si lo deseas
+      return true;
+    })
+    .catch((error) => {
+      // Manejar el error aquí
+      console.error("Error: updating property data", error);
+      throw error; // Puedes personalizar la respuesta de error según tus necesidades
     });
 };
 
