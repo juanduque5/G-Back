@@ -63,7 +63,49 @@ User.updateProfile = async (id, email, first, last) => {
       last: last,
     });
 
+    const socialCount = await db("social")
+      .where("user_id", id)
+      .count("* as count")
+      .first();
+    const count = parseInt(socialCount.count);
+    console.log("Count:", count);
+    if (count === 0) {
+      console.log("Entró en el if");
+
+      // Si no hay ninguna fila con user_id igual a id, insertar una nueva fila
+      await db("social").insert({
+        user_id: id,
+      });
+    }
+
     const updatedProfile = await db("users").where("id", id).first();
+    return updatedProfile;
+  } catch (error) {
+    console.error("Error al actualizar el perfil:", error);
+    throw new Error("Error al actualizar el perfil.");
+  }
+};
+
+User.updateSocialMedia = async (
+  id,
+  whatsapp,
+  facebook,
+  instagram,
+  linkedin,
+  tiktok
+) => {
+  try {
+    // Actualizar la información de las redes sociales para todos los registros con el user_id dado
+    await db("social")
+      .update({
+        whatsapp: whatsapp,
+        facebook: facebook,
+        instagram: instagram,
+        linkedin: linkedin,
+        tiktok: tiktok,
+      })
+      .where("user_id", id);
+    const updatedProfile = await db("social").where("user_id", id).first();
     return updatedProfile;
   } catch (error) {
     console.error("Error al actualizar el perfil:", error);
@@ -110,4 +152,14 @@ User.deleteProfileImg = async (id, url) => {
   }
 };
 
+User.profileSocial = async (id) => {
+  try {
+    const result = await db("social").where("user_id", id);
+
+    return result;
+  } catch (error) {
+    console.error("ERROR UPDATE IMAGE PROFILE (USERS)", error);
+    throw error;
+  }
+};
 module.exports = User;

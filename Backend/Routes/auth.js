@@ -16,24 +16,7 @@ const router = express.Router();
 //Sign up POST API ROUTER
 router.post(
   "/signup",
-  [
-    body("email")
-      .isEmail()
-      .withMessage("Please enter a valid email")
-      .custom(async (value) => {
-        const userRes = await User.findByEmail(value);
-        if (userRes) {
-          return Promise.reject("Email already exists");
-        }
-      })
-      .normalizeEmail(),
-    body("password")
-      .trim()
-      .isLength({ min: 5 })
-      .withMessage("Password must be at least 5 characters"),
-    body("first").trim().not().isEmpty().withMessage("Name is empty"),
-    body("last").trim().not().isEmpty().withMessage("Name is empty"),
-  ],
+
   authController.postSignup
 );
 
@@ -90,7 +73,7 @@ router.put(
   authController.putProfileUpdate
 );
 
-router.put(  
+router.put(
   "/imageUpdate/:id",
   upload.array("imagen", 1),
   authController.putImageUpdate
@@ -99,5 +82,7 @@ router.put(
 router.delete("/deleteProfileImage/:id", authController.deleteProfileImg);
 
 router.get("/dropdown", isAuth, authController.getIsAuthDrop);
+
+// router.get("/profileSocial/:id", authController.getProfileSocial);
 
 module.exports = router;

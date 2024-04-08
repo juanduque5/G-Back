@@ -14,6 +14,7 @@ const sendGridTransport = require("nodemailer-sendgrid-transport");
 const crypto = require("crypto");
 const sharp = require("sharp");
 const moment = require("moment");
+const { getDefaultHighWaterMark } = require("stream");
 
 require("dotenv").config();
 
@@ -42,63 +43,56 @@ const transporter = nodemailer.createTransport(
   })
 );
 
-exports.postSignup = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const validationError = new Error("Validation failed");
-    validationError.statusCode = 422;
-    validationError.data = errors.array();
-    throw validationError;
-  }
+exports.postSignup = async (req, res, next) => {
+  const { email, first, last, password } = req.body;
+  const language = req.headers["accept-language"] || "en"; // Obtener el idioma preferido del usuario de los encabezados de la solicitud
 
-  // Obtaining info from req.body
-  const email = req.body.email;
-  const first = req.body.first;
-  const last = req.body.last;
-  const password = req.body.password;
-
-  let newUser; // Variable para almacenar el usuario creado
-
-  // Usando bcrypt para hashear la contraseña del usuario
-  bcrypt
-    .hash(password, 12)
-    .then((hashedpassword) => {
-      // Crear usuario con contraseña hasheada
-      return User.create({
-        first: first,
-        last: last,
-        email: email,
-        password: hashedpassword,
-      });
-    })
-    .then((createdUser) => {
-      // Usuario creado con éxito
-      newUser = createdUser; // Almacenar el usuario creado para su uso posterior
-      console.log("creado con éxito", newUser);
-
-      // Enviar correo electrónico y devolver la promesa del envío del correo
-      // return transporter.sendMail({
-      //   to: email,
-      //   from: "onmygrind1219@gmail.com",
-      //   subject: "Signup succeeded!",
-      //   html: "<h1>You've successfully signed up!</h1>",
-      // });
-    })
-    .then(() => {
-      // Responder con éxito y el usuario creado
-      res
-        .status(201)
-        .json({ message: "User created successfully", user: newUser });
-    })
-    .catch((error) => {
-      console.error(error);
-
-      // Manejar el error de manera centralizada
-      if (!error.statusCode) {
-        error.statusCode = 500;
+  try {
+    // Verificar si el correo electrónico ya está registrado
+    const existingUser = await User.findByEmail(email);
+    if (existingUser) {
+      let errorMessage;
+      if (language === "es") {
+        errorMessage = "El correo electrónico ya está registrado.";
+      } else {
+        errorMessage = "Email already exists.";
       }
-      next(error);
+      const error = new Error(errorMessage);
+      error.statusCode = 422;
+      throw error;
+    }
+
+    // Hashear la contraseña del usuario
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Crear un nuevo usuario
+    const newUser = await User.create({
+      email: email,
+      first: first,
+      last: last,
+      password: hashedPassword,
     });
+
+    // Enviar correo electrónico y devolver la promesa del envío del correo
+    // return transporter.sendMail({
+    //   to: email,
+    //   from: "onmygrind1219@gmail.com",
+    //   subject: "Signup succeeded!",
+    //   html: "<h1>You've successfully signed up!</h1>",
+    // });
+
+    // Responder con éxito y el usuario creado
+    res
+      .status(201)
+      .json({ message: "User created successfully", user: newUser });
+  } catch (error) {
+    // Manejar el error de manera centralizada
+    console.error("Error creating user:", error);
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
 };
 
 // Controlador para el inicio de sesión
@@ -120,9 +114,20 @@ exports.postLogin = async (req, res, next) => {
     // Busca al usuario por su email en la base de datos
     const user = await User.findByEmail(email);
     console.log("USER", user);
+    const id = user.id;
 
     // Si no se encuentra al usuario, lanza un error
     if (!user) {
+      const error = new Error("Invalid email or password");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    const dataProfile = await User.profileSocial(id);
+
+    console.log(dataProfile);
+
+    if (!dataProfile) {
       const error = new Error("Invalid email or password");
       error.statusCode = 401;
       throw error;
@@ -163,6 +168,7 @@ exports.postLogin = async (req, res, next) => {
       id: user.id,
       email: user.email,
       imageURL: imageUrl,
+      profile: dataProfile,
     });
   } catch (err) {
     // Manejo de errores
@@ -333,10 +339,10 @@ exports.putProfileUpdate = async (req, res, next) => {
     return next(validationError); // Cambio aquí: usar return para salir inmediatamente
   }
 
-  const { email, first, last } = req.body;
-  const { id } = req.params;
-
   try {
+    const { id } = req.params;
+    let { email, first, last, whatsapp } = req.body;
+    console.log(id);
     const newProfile = await User.updateProfile(id, email, first, last);
     if (!newProfile) {
       const error = new Error("Invalid new Profile");
@@ -344,11 +350,28 @@ exports.putProfileUpdate = async (req, res, next) => {
       throw error;
     }
 
+    console.log("Profile successfully updated");
+
+    const updateSocialMedia = await User.updateSocialMedia(
+      id,
+      req.body.whatsapp,
+      req.body.facebook,
+      req.body.instagram,
+      req.body.linkedin,
+      req.body.tiktok
+    );
+
+    if (!updateSocialMedia) {
+      const error = new Error("Invalid new Profile");
+      error.statusCode = 401;
+      throw error;
+    }
+
     res.json({
       newProfile: newProfile,
+      socialmedia: updateSocialMedia,
       message: "Profile successfully updated",
     });
-    console.log("Profile successfully updated");
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -476,6 +499,27 @@ exports.deleteProfileImg = async (req, res, next) => {
     next(error);
   }
 };
+
+// exports.getProfileSocial = async (req, res, next) => {
+//   try {
+//     const { id } = req.params;
+//     console.log("idID", id);
+//     const profile = await User.profileSocial(id);
+//     if (!profile) {
+//       const error = new Error("Invalid profile social");
+//       error.statusCode = 401;
+//       throw error;
+//     }
+//     console.log("successful PROFILESOCIAL");
+//     res.json({ profile: profile });
+//   } catch (error) {
+//     if (!error.statusCode) {
+//       error.statusCode = 500;
+//     }
+
+//     next(error);
+//   }
+// };
 
 // console.log("files details before:", file.mimetype);
 
