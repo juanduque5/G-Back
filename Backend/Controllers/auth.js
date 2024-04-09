@@ -44,7 +44,10 @@ const transporter = nodemailer.createTransport(
 );
 
 exports.postSignup = async (req, res, next) => {
-  const { email, first, last, password } = req.body;
+  const { password } = req.body;
+  const email = req.body.email.toLowerCase();
+  const first = req.body.first.toLowerCase();
+  const last = req.body.last.toLowerCase();
   const language = req.headers["accept-language"] || "en"; // Obtener el idioma preferido del usuario de los encabezados de la solicitud
 
   try {
@@ -73,6 +76,13 @@ exports.postSignup = async (req, res, next) => {
       password: hashedPassword,
     });
 
+    const id = newUser.id;
+    const insertIdSocial = await User.insertIdSocial(id);
+
+    if (!insertIdSocial) {
+      console.log("error: register insertIdSocial");
+    }
+
     // Enviar correo electrónico y devolver la promesa del envío del correo
     // return transporter.sendMail({
     //   to: email,
@@ -97,38 +107,46 @@ exports.postSignup = async (req, res, next) => {
 
 // Controlador para el inicio de sesión
 exports.postLogin = async (req, res, next) => {
+  const language = req.headers["accept-language"] || "en"; // Obtener el idioma preferido del usuario de los encabezados de la solicitud
   try {
     // Realiza la validación de los datos recibidos
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error("Validation failed");
-      error.statusCode = 422;
-      error.data = errors.array();
-      throw error;
-    }
+    // const errors = validationResult(req);
+    // if (!errors.isEmpty()) {
+    //   const error = new Error("Validation failed");
+    //   error.statusCode = 422;
+    //   error.data = errors.array();
+    //   throw error;
+    // }
 
     // Extrae el email y la contraseña del cuerpo de la solicitud
-    const email = req.body.email;
+    const email = req.body.email.toLowerCase();
     const password = req.body.password;
 
     // Busca al usuario por su email en la base de datos
     const user = await User.findByEmail(email);
-    console.log("USER", user);
-    const id = user.id;
-
     // Si no se encuentra al usuario, lanza un error
     if (!user) {
-      const error = new Error("Invalid email or password");
+      let errorMessage;
+      if (language === "es") {
+        errorMessage = "Email no registrado";
+      } else {
+        errorMessage = "Email doesn't exist";
+      }
+      const error = new Error(errorMessage);
       error.statusCode = 401;
       throw error;
     }
-
+    console.log("USER", user);
+    let id;
+    if (user) {
+      id = user.id;
+    }
     const dataProfile = await User.profileSocial(id);
 
     console.log(dataProfile);
 
     if (!dataProfile) {
-      const error = new Error("Invalid email or password");
+      const error = new Error("profile social login");
       error.statusCode = 401;
       throw error;
     }
@@ -138,7 +156,13 @@ exports.postLogin = async (req, res, next) => {
 
     // Si las contraseñas no coinciden, lanza un error
     if (!compare) {
-      const error = new Error("Invalid password");
+      let errorMessage;
+      if (language === "es") {
+        errorMessage = "contraseña incorrecta";
+      } else {
+        errorMessage = "Incorrect password";
+      }
+      const error = new Error(errorMessage);
       error.statusCode = 401;
       throw error;
     }
@@ -330,6 +354,7 @@ exports.getIsAuthDrop = async (req, res, next) => {
   }
 };
 
+//if id is no the same as the id now, then email already exists
 exports.putProfileUpdate = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -341,37 +366,49 @@ exports.putProfileUpdate = async (req, res, next) => {
 
   try {
     const { id } = req.params;
-    let { email, first, last, whatsapp } = req.body;
     console.log(id);
-    const newProfile = await User.updateProfile(id, email, first, last);
-    if (!newProfile) {
-      const error = new Error("Invalid new Profile");
+    let { email, first, last, oldEmail, phone, whatsappNumber } = req.body;
+
+    const existingUser = await User.findByEmail(oldEmail);
+    console.log("existing id", existingUser.id);
+
+    if (parseInt(existingUser.id) === parseInt(id)) {
+      const newProfile = await User.updateProfile(id, email, first, last);
+      if (!newProfile) {
+        const error = new Error("Invalid new Profile");
+        error.statusCode = 401;
+        throw error;
+      }
+
+      console.log("Profile successfully updated");
+
+      const updateSocialMedia = await User.updateSocialMedia(
+        id,
+        req.body.whatsapp,
+        req.body.facebook,
+        req.body.instagram,
+        req.body.linkedin,
+        req.body.tiktok,
+        phone,
+        whatsappNumber
+      );
+
+      if (!updateSocialMedia) {
+        const error = new Error("Invalid new Profile");
+        error.statusCode = 401;
+        throw error;
+      }
+
+      res.json({
+        newProfile: newProfile,
+        socialmedia: updateSocialMedia,
+        message: "Profile successfully updated",
+      });
+    } else {
+      const error = new Error("Email is already registered");
       error.statusCode = 401;
       throw error;
     }
-
-    console.log("Profile successfully updated");
-
-    const updateSocialMedia = await User.updateSocialMedia(
-      id,
-      req.body.whatsapp,
-      req.body.facebook,
-      req.body.instagram,
-      req.body.linkedin,
-      req.body.tiktok
-    );
-
-    if (!updateSocialMedia) {
-      const error = new Error("Invalid new Profile");
-      error.statusCode = 401;
-      throw error;
-    }
-
-    res.json({
-      newProfile: newProfile,
-      socialmedia: updateSocialMedia,
-      message: "Profile successfully updated",
-    });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

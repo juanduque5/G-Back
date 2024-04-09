@@ -18,6 +18,21 @@ User.create = (userInput) => {
     });
 };
 
+//insert user id for social foreing key user_id
+User.insertIdSocial = async (id) => {
+  try {
+    // Aquí deberías tener alguna referencia a tu conexión de base de datos, supongamos que es dbConnection
+    await db("social").insert({
+      user_id: id,
+    });
+    console.log("ID social insertado correctamente");
+    return true;
+  } catch (error) {
+    console.error("Error al insertar ID social:", error);
+    return false;
+  }
+};
+
 //Find user by email
 User.findByEmail = (email) => {
   return db("users").where("email", email).first();
@@ -63,21 +78,6 @@ User.updateProfile = async (id, email, first, last) => {
       last: last,
     });
 
-    const socialCount = await db("social")
-      .where("user_id", id)
-      .count("* as count")
-      .first();
-    const count = parseInt(socialCount.count);
-    console.log("Count:", count);
-    if (count === 0) {
-      console.log("Entró en el if");
-
-      // Si no hay ninguna fila con user_id igual a id, insertar una nueva fila
-      await db("social").insert({
-        user_id: id,
-      });
-    }
-
     const updatedProfile = await db("users").where("id", id).first();
     return updatedProfile;
   } catch (error) {
@@ -92,7 +92,9 @@ User.updateSocialMedia = async (
   facebook,
   instagram,
   linkedin,
-  tiktok
+  tiktok,
+  phone,
+  whatsappNumber
 ) => {
   try {
     // Actualizar la información de las redes sociales para todos los registros con el user_id dado
@@ -103,6 +105,8 @@ User.updateSocialMedia = async (
         instagram: instagram,
         linkedin: linkedin,
         tiktok: tiktok,
+        phone: phone,
+        wnumber: whatsappNumber,
       })
       .where("user_id", id);
     const updatedProfile = await db("social").where("user_id", id).first();
@@ -162,4 +166,5 @@ User.profileSocial = async (id) => {
     throw error;
   }
 };
+
 module.exports = User;

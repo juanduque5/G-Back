@@ -23,16 +23,7 @@ router.post(
 //Login POST API ROUTER
 router.post(
   "/login",
-  [
-    body("email")
-      .isEmail()
-      .withMessage("Please enter a valid email")
-      .normalizeEmail(),
-    body("password")
-      .trim()
-      .isLength({ min: 5 })
-      .withMessage("Password must be at least 5 characters"),
-  ],
+
   authController.postLogin
 );
 

@@ -53,7 +53,7 @@ Properties.insertData = (
 Properties.propertiesDataIsAuth = (userId) => {
   //Query to search for all properties, including the ones that a users saved as favorite
   return db
-    .distinct()
+
     .select(
       "propiedades.*",
       "imagenes.url as imageURL",
@@ -82,7 +82,7 @@ Properties.propertiesDataIsAuth = (userId) => {
 Properties.propertiesDataNoAuth = () => {
   //if a user is not authenticated, it will just search for all the properties
   return db
-    .distinct()
+
     .select("propiedades.*", "imagenes.url as imageURL")
     .from("propiedades")
     .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
@@ -498,9 +498,9 @@ Properties.updateData = (
       habitaciones: habitaciones,
       area: area,
       estado: estado,
-  
+
       estacionamientos: estacionamientos,
-   
+
       currency: currency,
       direccion: direccion,
       precio: precio,

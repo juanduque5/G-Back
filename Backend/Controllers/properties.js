@@ -1,5 +1,3 @@
-// const User = require("../Models/user");
-
 const {
   S3Client,
   PutObjectCommand,
@@ -7,6 +5,7 @@ const {
   DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 const Properties = require("../Models/properties");
+const User = require("../Models/user");
 const sharp = require("sharp");
 const { validationResult } = require("express-validator");
 const crypto = require("crypto");
@@ -229,7 +228,10 @@ exports.getInfoById = async (req, res, next) => {
     const { id } = req.params;
     console.log(id);
     const propertyById = await Properties.propertyById(id);
-    console.log("propertyById", propertyById);
+    // console.log("propertyById", propertyById[0].user_id);
+    const userId = propertyById[0].user_id;
+
+    const social = await User.profileSocial(userId);
 
     if (!propertyById) {
       const error = new Error("ERROR: PropertyById");
@@ -241,7 +243,7 @@ exports.getInfoById = async (req, res, next) => {
     const imageUrl = await Properties.searchImagesById(id);
 
     const updatedUrls = imageUrl.map((urlObject) => urlObject["imageURL."]);
-    console.log("image URLs:", updatedUrls);
+    // console.log("image URLs:", updatedUrls);
 
     const updatedData = updatedUrls.map((url) => {
       return {
@@ -249,10 +251,11 @@ exports.getInfoById = async (req, res, next) => {
         imageUrl: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${url}`,
       };
     });
-    console.log("up", updatedData);
+    // console.log("up", updatedData);
     res.status(200).json({
       message: "PropertyById successfully sento to FRONT END",
       data: updatedData,
+      social: social,
     });
   } catch (error) {
     console.error("Error in catch block propertyById:", error);
@@ -268,6 +271,8 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
   try {
     const { id } = req.params;
     const propertiesById = await Properties.propertiesInfoAndImagesById(id);
+
+    const social = await User.profileSocial(id);
 
     if (!propertiesById) {
       const error = new Error("No properties found for the specified user ID");
@@ -300,6 +305,7 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
     res.status(200).json({
       message: "PropertiesById successfully sent to FRONT END",
       propertiesById: updatedProperties,
+      social: social,
     });
 
     console.log("propertiesById were successfully sent ");
