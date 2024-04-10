@@ -53,7 +53,6 @@ Properties.insertData = (
 Properties.propertiesDataIsAuth = (userId) => {
   //Query to search for all properties, including the ones that a users saved as favorite
   return db
-
     .select(
       "propiedades.*",
       "imagenes.url as imageURL",
@@ -68,6 +67,7 @@ Properties.propertiesDataIsAuth = (userId) => {
         Number(userId)
       ); // Convertir userId a número
     })
+    .orderBy("propiedades.id", "desc") // Ordenar por la columna propiedades.id en orden descendente
     .then((data) => {
       // Manejar los datos recuperados exitosamente
       return data;
@@ -82,11 +82,10 @@ Properties.propertiesDataIsAuth = (userId) => {
 Properties.propertiesDataNoAuth = () => {
   //if a user is not authenticated, it will just search for all the properties
   return db
-
     .select("propiedades.*", "imagenes.url as imageURL")
     .from("propiedades")
     .leftJoin("imagenes", "propiedades.id", "imagenes.propiedad_id")
-
+    .orderBy("propiedades.id", "desc") // Ordenar por la columna propiedades.id en orden descendente
     .then((data) => {
       // console.log("todas las propiedades:", data); // Aquí obtienes los registros de propiedades con las URLs
       return data;
@@ -478,9 +477,7 @@ Properties.updateData = (
   habitaciones,
   area,
   estado,
-  tipo,
   estacionamientos,
-  uso,
   currency,
   direccion,
   precio,
@@ -498,9 +495,7 @@ Properties.updateData = (
       habitaciones: habitaciones,
       area: area,
       estado: estado,
-
       estacionamientos: estacionamientos,
-
       currency: currency,
       direccion: direccion,
       precio: precio,

@@ -273,6 +273,7 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
     const propertiesById = await Properties.propertiesInfoAndImagesById(id);
 
     const social = await User.profileSocial(id);
+    const user = await User.findById(id);
 
     if (!propertiesById) {
       const error = new Error("No properties found for the specified user ID");
@@ -280,13 +281,13 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
       throw error;
     }
 
-    console.log("propertiesById I:", propertiesById);
+    // console.log("propertiesById I:", propertiesById);
 
     const newProperties = propertiesById.filter((obj, index) => {
       return index === propertiesById.findIndex((index) => index.id === obj.id);
     });
 
-    console.log("propertiesById II:", newProperties);
+    // console.log("propertiesById II:", newProperties);
 
     // for (const properties of propertiesById) {
     //   var images = await Properties.searchImagesById(properties.id);
@@ -300,12 +301,14 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
       };
     });
 
-    console.log("propertiesById III:", updatedProperties);
+    // console.log("propertiesById III:", updatedProperties);
+    // console.log("propertiesById III:", name);
 
     res.status(200).json({
       message: "PropertiesById successfully sent to FRONT END",
       propertiesById: updatedProperties,
       social: social,
+      user: user,
     });
 
     console.log("propertiesById were successfully sent ");
@@ -533,14 +536,14 @@ exports.getAutoCompleteGuatemala = async (req, res, next) => {
 //handle search from home
 exports.getHomeSearch = async (req, res, next) => {
   const searchData = req.query;
-  const casa = req.query.casa === "true" ? "house" : false;
-  const apartamento = req.query.apartamento === "true" ? "apartment" : false;
-  const local = req.query.local === "true" ? "local" : false;
-  const lote = req.query.lote === "true" ? "lote" : false;
+  const casa = req.query.casa === "true" ? "Casa" : false;
+  const apartamento = req.query.apartamento === "true" ? "Apartamento" : false;
+  const local = req.query.local === "true" ? "Local" : false;
+  const lote = req.query.lote === "true" ? "Lote" : false;
   const venta =
-    req.query.venta === "true" || req.query.both === "true" ? "sell" : false;
+    req.query.venta === "true" || req.query.both === "true" ? "Venta" : false;
   const renta =
-    req.query.renta === "true" || req.query.both === "true" ? "rent" : false;
+    req.query.renta === "true" || req.query.both === "true" ? "Renta" : false;
   const bathrooms = !isNaN(req.query.bathrooms) ? req.query.bathrooms : false;
   const bedrooms = !isNaN(req.query.bedrooms) ? req.query.bedrooms : false;
   const price = req.query.price ? req.query.price : false;
@@ -549,6 +552,8 @@ exports.getHomeSearch = async (req, res, next) => {
   const id = req.query.id;
   const minPriceRenta = !isNaN(req.query.minPrice) ? req.query.minPrice : false;
   const maxPriceRenta = !isNaN(req.query.maxPrice) ? req.query.maxPrice : false;
+
+  console.log("minPriceRenta", minPriceRenta);
 
   let minPrice, maxPrice;
 
@@ -572,10 +577,10 @@ exports.getHomeSearch = async (req, res, next) => {
     minPrice = 500000;
     maxPrice = 10000000;
   } else if (
-    (minPriceRenta === "" || minPriceRenta >= 0) &&
+    (minPriceRenta === "" || minPriceRenta >= 0 || minPriceRenta === false) &&
     maxPriceRenta > 0
   ) {
-    if (minPriceRenta === "") {
+    if (minPriceRenta === "" || minPriceRenta === false) {
       minPrice = 0;
       maxPrice = maxPriceRenta;
     } else {
@@ -736,10 +741,10 @@ exports.putProperties = async (req, res, next) => {
     const estacionamientos = req.body.estacionamientos;
     const area = req.body.area;
     const estado = req.body.estado;
-    const tipo = req.body.tipo;
+
     const property_id = req.body.id;
     const user_id = req.body.userId;
-    const uso = req.body.uso;
+
     const deleteImg = req.body.delete;
     const id = req.body.id;
     const currency = req.body.currency;
