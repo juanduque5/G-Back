@@ -544,8 +544,8 @@ exports.getHomeSearch = async (req, res, next) => {
     req.query.venta === "true" || req.query.both === "true" ? "Venta" : false;
   const renta =
     req.query.renta === "true" || req.query.both === "true" ? "Renta" : false;
-  const bathrooms = !isNaN(req.query.bathrooms) ? req.query.bathrooms : false;
-  const bedrooms = !isNaN(req.query.bedrooms) ? req.query.bedrooms : false;
+  const bathrooms = (req.query.bathrooms !== "" && !isNaN(req.query.bathrooms)) ? req.query.bathrooms : false
+  const bedrooms = (req.query.bedrooms !== "" && !isNaN(req.query.bedrooms)) ? req.query.bedrooms : false
   const price = req.query.price ? req.query.price : false;
   const location = req.query.location;
   const token = req.query.token;
@@ -655,7 +655,7 @@ exports.getHomeSearch = async (req, res, next) => {
       console.log("homeSearch", updatedProperties);
     } else {
       //else
-
+      console.log(searchData);
       console.log(
         "venta",
         venta,
