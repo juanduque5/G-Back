@@ -513,4 +513,69 @@ Properties.updateData = (
     });
 };
 
+//Properties count for subscribers
+Properties.countProperties = (userId) => {
+  return db("subscribers")
+    .select("numproperties", "freeplan", "proplan")
+    .where("user_id", userId)
+    .first()
+    .then((result) => {
+      return result;
+    })
+    .catch((error) => {
+      console.error("Error al obtener el número de propiedades:", error);
+      throw error;
+    });
+};
+
+//update freeplan
+Properties.updateFreePlanToFalse = (userId) => {
+  return db("subscribers")
+    .where("user_id", userId)
+    .update({ freeplan: false })
+    .then(() => {
+      console.log(
+        "¡Actualización exitosa del campo freeplan a false para el usuario con ID:",
+        userId
+      );
+    })
+    .catch((error) => {
+      console.error("Error al actualizar freeplan:", error);
+      throw error;
+    });
+};
+
+//increment numproperties
+Properties.incrementProperties = (userId) => {
+  return db.transaction(async (trx) => {
+    try {
+      // Obtener el número actual de propiedades del usuario
+      const currentProperties = await db("subscribers")
+        .select("numproperties")
+        .where("user_id", userId)
+        .first()
+        .transacting(trx);
+
+      // Incrementar el número de propiedades
+      const newProperties = currentProperties.numproperties + 1;
+
+      // Actualizar el número de propiedades en la base de datos
+      await db("subscribers")
+        .where("user_id", userId)
+        .update({ numproperties: newProperties })
+        .transacting(trx);
+
+      // Confirmar la transacción
+      await trx.commit();
+
+      return newProperties; // Devolver el nuevo número de propiedades
+    } catch (error) {
+      // Revertir la transacción en caso de error
+      await trx.rollback();
+      console.error("Error al incrementar el número de propiedades:", error);
+      throw error;
+    }
+  });
+};
+
 module.exports = Properties;

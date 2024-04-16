@@ -33,6 +33,21 @@ User.insertIdSocial = async (id) => {
   }
 };
 
+//insert user id for social foreing key user_id
+User.insertIdSubs = async (id) => {
+  try {
+    // Aquí deberías tener alguna referencia a tu conexión de base de datos, supongamos que es dbConnection
+    await db("subscribers").insert({
+      user_id: id,
+    });
+    console.log("ID subscribers insertado correctamente");
+    return true;
+  } catch (error) {
+    console.error("Error al insertar ID social:", error);
+    return false;
+  }
+};
+
 //Find user by email
 User.findByEmail = (email) => {
   return db("users").where("email", email).first();

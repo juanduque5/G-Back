@@ -6,6 +6,7 @@ const {
 } = require("@aws-sdk/client-s3");
 
 const User = require("../Models/user");
+const Properties = require("../Models/properties");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -83,6 +84,11 @@ exports.postSignup = async (req, res, next) => {
       console.log("error: register insertIdSocial");
     }
 
+    const insertIdSubs = await User.insertIdSubs(id);
+
+    if (!insertIdSubs) {
+      console.log("error: register insertIdSubs");
+    }
     // Enviar correo electrónico y devolver la promesa del envío del correo
     // return transporter.sendMail({
     //   to: email,
@@ -141,7 +147,11 @@ exports.postLogin = async (req, res, next) => {
     if (user) {
       id = user.id;
     }
+    //to get social media links
     const dataProfile = await User.profileSocial(id);
+    //to get free plan status
+    // const countProperties = await Properties.countProperties(id);
+    // let freeplan = countProperties.freeplan;
 
     console.log(dataProfile);
 

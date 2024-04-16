@@ -90,9 +90,11 @@ exports.postProperties = async (req, res, next) => {
     }
 
     console.log("DATA SUCCESSFULLY INSERTED");
+    Properties.incrementProperties(user_id);
+    const numproperties = await Properties.countProperties(user_id);
 
-    // for (const file of files) {
-    // }
+    console.log("num", numproperties.numproperties);
+
     res.status(200).json({
       message: "Property data successfully inserted",
     });
@@ -281,6 +283,26 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
       throw error;
     }
 
+    const countProperties = await Properties.countProperties(id);
+    let button = false;
+    console.log("count", countProperties);
+    //Deciding whether to disabled button or not
+    if (
+      (countProperties.freeplan && countProperties.numproperties < 2) ||
+      countProperties.proplan
+    ) {
+      button = false;
+    } else {
+      button = true;
+    }
+
+    //if numproperties equals 2 then, set freeplan to false
+    if (countProperties.numproperties === 2) {
+      Properties.updateFreePlanToFalse(id);
+    }
+
+    //---if countProperties.proProperties === 3, set proplan to false and and proproperties to 0
+
     // console.log("propertiesById I:", propertiesById);
 
     const newProperties = propertiesById.filter((obj, index) => {
@@ -309,6 +331,7 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
       propertiesById: updatedProperties,
       social: social,
       user: user,
+      button: button,
     });
 
     console.log("propertiesById were successfully sent ");
@@ -544,8 +567,14 @@ exports.getHomeSearch = async (req, res, next) => {
     req.query.venta === "true" || req.query.both === "true" ? "Venta" : false;
   const renta =
     req.query.renta === "true" || req.query.both === "true" ? "Renta" : false;
-  const bathrooms = (req.query.bathrooms !== "" && !isNaN(req.query.bathrooms)) ? req.query.bathrooms : false
-  const bedrooms = (req.query.bedrooms !== "" && !isNaN(req.query.bedrooms)) ? req.query.bedrooms : false
+  const bathrooms =
+    req.query.bathrooms !== "" && !isNaN(req.query.bathrooms)
+      ? req.query.bathrooms
+      : false;
+  const bedrooms =
+    req.query.bedrooms !== "" && !isNaN(req.query.bedrooms)
+      ? req.query.bedrooms
+      : false;
   const price = req.query.price ? req.query.price : false;
   const location = req.query.location;
   const token = req.query.token;
