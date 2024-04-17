@@ -6,10 +6,6 @@ exports.postOrder = async (req, res, next) => {
     const { id } = req.params;
     console.log(id);
     //Passwords for API
-    const publicKey =
-      "pk_live_FqzaxtPr9MbBwRFudWvnDV3dfqhG8uUGL8PDOx0Zg58PpE5C0R80YcaNA";
-    const secretKey =
-      "sk_live_6B7vcT4vNMe7cVFITjneJgqr8T7mHdr9eE7koxp0ebtm6ltz50hwhho6F";
 
     const user = await User.findById(id);
     const email = user.email;
@@ -125,10 +121,7 @@ exports.crearWebhook = (req, res) => {
   // Datos de autenticación
   console.log("Recibida solicitud en la ruta /webhook");
   // Resto del código del controlador..
-  // const publicKey =
-  //   "pk_live_FqzaxtPr9MbBwRFudWvnDV3dfqhG8uUGL8PDOx0Zg58PpE5C0R80YcaNA";
-  // const secretKey =
-  //   "sk_live_6B7vcT4vNMe7cVFITjneJgqr8T7mHdr9eE7koxp0ebtm6ltz50hwhho6F";
+
   // // Datos del punto final de webhook
   // const webhookUrl = "https://989c-73-231-12-222.ngrok-free.app/webhook";
   // const webhookDescription = "Mi endpoint de prueba";
