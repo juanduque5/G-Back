@@ -18,7 +18,8 @@ Properties.insertData = (
   direccion,
   precio,
   lat,
-  lng
+  lng,
+  date
 ) => {
   return db("propiedades")
     .returning("*")
@@ -39,6 +40,7 @@ Properties.insertData = (
       precio: precio,
       latitud: lat,
       longitud: lng,
+      joindate: date,
     })
     .then((result) => {
       return result[0];
@@ -516,7 +518,13 @@ Properties.updateData = (
 //Properties count for subscribers
 Properties.countProperties = (userId) => {
   return db("subscribers")
-    .select("numproperties", "freeplan", "proplan")
+    .select(
+      "freeproperties",
+      "proproperties",
+      "availableproperties",
+      "freeplan",
+      "proplan"
+    )
     .where("user_id", userId)
     .first()
     .then((result) => {
@@ -545,34 +553,74 @@ Properties.updateFreePlanToFalse = (userId) => {
     });
 };
 
-//increment numproperties
-Properties.incrementProperties = (userId) => {
+//update proplan
+Properties.updateProPlanToFalse = (userId) => {
+  return db("subscribers")
+    .where("user_id", userId)
+    .update({ proplan: false })
+    .then(() => {
+      console.log(
+        "¡Actualización exitosa del campo freeplan a false para el usuario con ID:",
+        userId
+      );
+    })
+    .catch((error) => {
+      console.error("Error al actualizar freeplan:", error);
+      throw error;
+    });
+};
+
+//decrement numproperties
+Properties.updatePropertiesInc = (userId) => {
   return db.transaction(async (trx) => {
     try {
       // Obtener el número actual de propiedades del usuario
       const currentProperties = await db("subscribers")
-        .select("numproperties")
+        .select("freeproperties", "availableproperties", "proproperties")
         .where("user_id", userId)
         .first()
         .transacting(trx);
 
-      // Incrementar el número de propiedades
-      const newProperties = currentProperties.numproperties + 1;
+      // Decrementar las propiedades solo si son mayores que 0
+      let newFreeProperties = currentProperties.freeproperties;
+      let newAvailableProperties = currentProperties.availableproperties;
 
-      // Actualizar el número de propiedades en la base de datos
+      if (currentProperties.freeproperties > 0) {
+        newFreeProperties = currentProperties.freeproperties - 1;
+      }
+
+      if (currentProperties.availableproperties > 0) {
+        newAvailableProperties = currentProperties.availableproperties - 1;
+      }
+
+      // Incrementar la columna proproperties si es mayor o igual a 0
+      let newProProperties = currentProperties.proproperties;
+      if (currentProperties.proproperties >= 0) {
+        newProProperties = currentProperties.proproperties + 1;
+      }
+
+      // Actualizar las propiedades en la base de datos
       await db("subscribers")
         .where("user_id", userId)
-        .update({ numproperties: newProperties })
+        .update({
+          freeproperties: newFreeProperties,
+          availableproperties: newAvailableProperties,
+          proproperties: newProProperties,
+        })
         .transacting(trx);
 
       // Confirmar la transacción
       await trx.commit();
 
-      return newProperties; // Devolver el nuevo número de propiedades
+      return {
+        freeproperties: newFreeProperties,
+        availableproperties: newAvailableProperties,
+        proproperties: newProProperties,
+      }; // Devolver las nuevas propiedades
     } catch (error) {
       // Revertir la transacción en caso de error
       await trx.rollback();
-      console.error("Error al incrementar el número de propiedades:", error);
+      console.error("Error al actualizar las propiedades:", error);
       throw error;
     }
   });

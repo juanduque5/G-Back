@@ -7,6 +7,6 @@ const router = express.Router();
 
 // Definir otras rutas según sea necesario
 router.post("/order/:id", authController.postOrder);
-router.get("/webhook", authController.crearWebhook);
+// router.get("/webhook", authController.crearWebhook);
 
 module.exports = router;

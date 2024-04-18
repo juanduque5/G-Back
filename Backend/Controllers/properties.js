@@ -10,6 +10,7 @@ const sharp = require("sharp");
 const { validationResult } = require("express-validator");
 const crypto = require("crypto");
 // const { all } = require("../Routes/properties");
+const moment = require("moment");
 
 require("dotenv").config();
 
@@ -53,6 +54,7 @@ exports.postProperties = async (req, res, next) => {
   const precio = req.body.precio;
   const lat = req.body.lat;
   const lng = req.body.lng;
+  const currentDate = moment().format("MM-DD-YYYY");
 
   try {
     const errors = validationResult(req);
@@ -80,7 +82,8 @@ exports.postProperties = async (req, res, next) => {
       direccion,
       precio,
       lat,
-      lng
+      lng,
+      currentDate
     );
 
     if (!propertiesResult) {
@@ -90,7 +93,7 @@ exports.postProperties = async (req, res, next) => {
     }
 
     console.log("DATA SUCCESSFULLY INSERTED");
-    Properties.incrementProperties(user_id);
+    Properties.updatePropertiesInc(user_id);
     const numproperties = await Properties.countProperties(user_id);
 
     console.log("num", numproperties.numproperties);
@@ -288,17 +291,23 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
     console.log("count", countProperties);
     //Deciding whether to disabled button or not
     if (
-      (countProperties.freeplan && countProperties.numproperties < 2) ||
-      countProperties.proplan
+      (countProperties.freeplan && countProperties.freeproperties > 0) ||
+      (countProperties.proplan && countProperties.availableproperties > 0)
     ) {
       button = false;
     } else {
       button = true;
     }
 
-    //if numproperties equals 2 then, set freeplan to false
-    if (countProperties.numproperties === 2) {
+    //if freeplan true and freeplanProperties === 0 update freplan to fasle
+    //if proplan true and availableproperties === 0 update proplan to false
+    if (countProperties.freeproperties === 0 && countProperties.freeplan) {
       Properties.updateFreePlanToFalse(id);
+    } else if (
+      countProperties.availableproperties === 0 &&
+      countProperties.proplan
+    ) {
+      Properties.updateProPlanToFalse(id);
     }
 
     //---if countProperties.proProperties === 3, set proplan to false and and proproperties to 0
