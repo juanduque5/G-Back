@@ -553,7 +553,7 @@ Properties.updateFreePlanToFalse = (userId) => {
     });
 };
 
-//update proplan
+//update proplan to false
 Properties.updateProPlanToFalse = (userId) => {
   return db("subscribers")
     .where("user_id", userId)
@@ -565,7 +565,24 @@ Properties.updateProPlanToFalse = (userId) => {
       );
     })
     .catch((error) => {
-      console.error("Error al actualizar freeplan:", error);
+      console.error("Error al actualizar proplan:", error);
+      throw error;
+    });
+};
+
+//update proplan to true afterr completing payment
+Properties.updateProPlanToTrue = (userId) => {
+  return db("subscribers")
+    .where("user_id", userId)
+    .update({ proplan: true })
+    .then(() => {
+      console.log(
+        "¡Actualización exitosa del campo proplan a true para el usuario con ID:",
+        userId
+      );
+    })
+    .catch((error) => {
+      console.error("Error al actualizar proplan:", error);
       throw error;
     });
 };

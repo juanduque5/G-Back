@@ -32,12 +32,14 @@ app.use((error, req, res, next) => {
 
 app.post("/process_recurrente", async (req, res) => {
   const productId = req.body.product.id;
-  let result = true;
+
   console.log("Body", req.body);
   switch (req.body.event_type) {
     case "payment_intent.succeeded":
       const success = await User.updatePayment(productId, "complete");
-      const updatePro = await Properties.updateProPlanToFalse(result);
+      const updatePro = await Properties.updateProPlanToTrue210(
+        success.updated_user_id
+      );
       console.log(
         "Estado del pago actualizado:",
         success.payment_status,

@@ -149,3 +149,15 @@ exports.postOrder = async (req, res, next) => {
     res.status(500).json("Unable to create orders");
   }
 };
+
+exports.getAllPayments = async (req, res, next) => {
+  try {
+    const data = await User.getAllUsersWithPayments();
+    res.status(200).json({
+      data: data,
+    });
+  } catch (err) {
+    console.log("Error creating orders:", err);
+    res.status(500).json("Unable to create orders");
+  }
+};

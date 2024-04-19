@@ -261,4 +261,36 @@ User.updatePayment = async (productId, status) => {
   }
 };
 
+User.getAllUsersWithSubscribers = () => {
+  return db("users as u")
+    .join("subscribers as s", "u.id", "s.user_id")
+    .select(
+      "u.id",
+      "u.first",
+      "u.last",
+      "u.email",
+      "u.joindate",
+      "s.freeplan",
+      "s.proplan",
+      "s.availableproperties",
+      db.raw(
+        "(SELECT COUNT(*) FROM propiedades p WHERE p.user_id = u.id) AS num_properties"
+      )
+    );
+};
+
+User.getAllUsersWithPayments = () => {
+  return db("users as u")
+    .join("payments as p", "u.id", "p.user_id")
+    .select(
+      "p.id",
+      "u.first",
+      "u.last",
+      "p.date as payDate",
+      "p.payment_status",
+      "p.recurrente_id",
+      "p.currency"
+    );
+};
+
 module.exports = User;

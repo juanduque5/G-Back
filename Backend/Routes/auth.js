@@ -74,6 +74,8 @@ router.delete("/deleteProfileImage/:id", authController.deleteProfileImg);
 
 router.get("/dropdown", isAuth, authController.getIsAuthDrop);
 
+router.get("/userData", authController.getUserData);
+
 // router.get("/profileSocial/:id", authController.getProfileSocial);
 
 module.exports = router;

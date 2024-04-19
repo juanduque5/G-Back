@@ -547,6 +547,21 @@ exports.deleteProfileImg = async (req, res, next) => {
   }
 };
 
+exports.getUserData = async (req, res, next) => {
+  try {
+    const data = await User.getAllUsersWithSubscribers();
+    res.status(200).json({
+      data: data,
+    });
+  } catch (error) {
+    console.error("Error al obtener todos los users (getUserData)", error);
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
+};
+
 // exports.getProfileSocial = async (req, res, next) => {
 //   try {
 //     const { id } = req.params;
