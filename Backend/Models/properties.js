@@ -52,6 +52,57 @@ Properties.insertData = (
     });
 };
 
+//insert data for vacations
+Properties.insertDataVacations = (
+  id,
+  departamento,
+  municipio,
+  description,
+  banos,
+  habitaciones,
+  area,
+  estado,
+  tipo,
+  estacionamientos,
+  uso,
+  currency,
+  direccion,
+  precio,
+  lat,
+  lng,
+  date
+) => {
+  return db("vacations")
+    .returning("*")
+    .insert({
+      user_id: id,
+      departamento: departamento,
+      municipio: municipio,
+      description: description,
+      banos: banos,
+      habitaciones: habitaciones,
+      area: area,
+      estado: estado,
+      tipo: tipo,
+      estacionamientos: estacionamientos,
+      uso: uso,
+      currency: currency,
+      direccion: direccion,
+      precio: precio,
+      latitud: lat,
+      longitud: lng,
+      joindate: date,
+    })
+    .then((result) => {
+      return result[0];
+    })
+    .catch((error) => {
+      // manejar el error aquí
+      console.error("Error: inserting property data", error);
+      throw error; // puedes personalizar la respuesta de error según tus necesidades
+    });
+};
+
 Properties.propertiesDataIsAuth = (userId) => {
   //Query to search for all properties, including the ones that a users saved as favorite
   return db
@@ -138,6 +189,25 @@ Properties.insertImage = (id, url) => {
     });
 };
 
+//insert image for vacations
+Properties.insertImageVacations = (id, url) => {
+  //insert an image url and associate it with a property id
+  return db("imagenesvacations")
+    .returning("*")
+    .insert({
+      vacations_id: id,
+      url: url,
+    })
+    .then((result) => {
+      return result[0];
+    })
+    .catch((error) => {
+      // manejar el error aquí
+      console.error("Error al insertar imagen:", error);
+      throw error; // puedes personalizar la respuesta de error según tus necesidades
+    });
+};
+
 Properties.searchImagesById = (id) => {
   //Find all urls that have a property id
   return db
@@ -169,6 +239,149 @@ Properties.propertiesInfoAndImagesById = (id) => {
     .catch((error) => {
       console.error("ERROR: todas las propiedades:", error);
       throw error;
+    });
+};
+
+//vacations
+Properties.propertiesInfoAndImagesByIdVacations = (id) => {
+  return db
+    .select("vacations.*", "imagenesvacations.url as imageURL")
+    .from("vacations")
+    .leftJoin(
+      "imagenesvacations",
+      "vacations.id",
+      "imagenesvacations.vacations_id"
+    )
+    .where("vacations.user_id", id)
+    .then((data) => {
+      // console.log("todas las propiedades:", data); // Aquí obtienes los registros de propiedades con las URLs
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: todas las propiedades:", error);
+      throw error;
+    });
+};
+
+//vacations
+Properties.propertyByIdVacations = (id) => {
+  // Encontrar propiedad por su id en la tabla vacations
+  return db("vacations")
+    .where("id", id)
+    .then((data) => {
+      // Aquí tendrás acceso a todas las columnas de la propiedad en vacations con el id especificado
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: properties by id ", error);
+      throw error;
+    });
+};
+
+//allvacation properties no id
+Properties.allVacations = () => {
+  //if a user is not authenticated, it will just search for all the properties
+  return db
+    .select("vacations.*", "imagenesvacations.url as imageURL")
+    .from("vacations")
+    .leftJoin(
+      "imagenesvacations",
+      "vacations.id",
+      "imagenesvacations.vacations_id"
+    )
+    .orderBy("vacations.id", "desc") // Ordenar por la columna propiedades.id en orden descendente
+    .then((data) => {
+      // console.log("todas las propiedades:", data); // Aquí obtienes los registros de propiedades con las URLs
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: todas las propiedades:", error);
+      throw error;
+    });
+};
+
+//vacation images
+Properties.searchImagesByIdVacations = (id) => {
+  //Find all urls that have a property id
+  return db
+    .select("imagenesvacations.url as imageURL.")
+    .from("vacations")
+    .leftJoin(
+      "imagenesvacations",
+      "vacations.id",
+      "imagenesvacations.vacations_id"
+    )
+    .where("vacations_id", id) // Reemplaza tuIdEspecifico con el valor que estás buscando
+    .then((data) => {
+      // Aquí obtienes los registros de propiedades con las URLs
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR al obtener las imageURL:", error);
+      throw error;
+    });
+};
+
+//vacation update
+Properties.updateDataVacations = (
+  propertyId,
+  user_id,
+  departamento,
+  municipio,
+  description,
+  banos,
+  habitaciones,
+  area,
+  estado,
+  estacionamientos,
+  currency,
+  direccion,
+  precio,
+  lat,
+  lng
+) => {
+  return db("vacations")
+    .where({ id: propertyId }) // Filtra la propiedad que deseas actualizar por su ID
+    .update({
+      user_id: user_id,
+      departamento: departamento,
+      municipio: municipio,
+      description: description,
+      banos: banos,
+      habitaciones: habitaciones,
+      area: area,
+      estado: estado,
+      estacionamientos: estacionamientos,
+      currency: currency,
+      direccion: direccion,
+      precio: precio,
+      latitud: lat,
+      longitud: lng,
+    })
+    .then(() => {
+      // No necesitas retornar nada en un update exitoso, pero puedes hacerlo si lo deseas
+      return true;
+    })
+    .catch((error) => {
+      // Manejar el error aquí
+      console.error("Error: updating property data", error);
+      throw error; // Puedes personalizar la respuesta de error según tus necesidades
+    });
+};
+
+//vacation delete images
+Properties.deleteImagesEditVacations = (id, url) => {
+  return db("imagenesvacations")
+    .where({
+      vacations_id: id,
+      url: url,
+    })
+    .del()
+    .then((numDeleted) => {
+      return numDeleted;
+    })
+    .catch((err) => {
+      console.error("Error al eliminar imagenes en edit:", err);
     });
 };
 
@@ -641,6 +854,47 @@ Properties.updatePropertiesInc = (userId) => {
       throw error;
     }
   });
+};
+
+//vacationSearch
+Properties.vacationSearch = (location, guests, checkInDate, checkOutDate) => {
+  return db
+    .distinct()
+    .select("vacations.*", "imagenesvacations.url as imageURL") // Aquí se agrega la selección de columnas
+    .from("vacations")
+    .leftJoin(
+      "imagenesvacations",
+      "vacations.id",
+      "imagenesvacations.vacations_id"
+    )
+    .where((builder) => {
+      if (location.trim() !== "") {
+        builder.where("municipio", location);
+      }
+    })
+    .andWhere(function () {
+      if (guests !== false) {
+        this.where("habitaciones", guests);
+      }
+    })
+    .andWhere(function () {
+      if (checkInDate !== false) {
+        this.where("checkin", checkInDate);
+      }
+    })
+    .andWhere(function () {
+      if (checkOutDate !== false) {
+        this.where("checkout", checkOutDate);
+      }
+    })
+    .then((data) => {
+      console.log(data);
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: homeSearch");
+      throw error;
+    });
 };
 
 module.exports = Properties;

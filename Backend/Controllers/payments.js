@@ -19,7 +19,7 @@ exports.postOrder = async (req, res, next) => {
     //user data
     const userData = {
       email: email,
-      full_name: name,
+      full_name: "Juan Duque",
     };
 
     console.log("USER", userData);
