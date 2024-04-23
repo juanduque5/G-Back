@@ -19,7 +19,8 @@ Properties.insertData = (
   precio,
   lat,
   lng,
-  date
+  date,
+  expire
 ) => {
   return db("propiedades")
     .returning("*")
@@ -41,6 +42,7 @@ Properties.insertData = (
       latitud: lat,
       longitud: lng,
       joindate: date,
+      expire_date: expire,
     })
     .then((result) => {
       return result[0];

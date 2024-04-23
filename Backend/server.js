@@ -82,13 +82,13 @@ const s3 = new S3Client({
 async function eliminarImagenesExpiradas() {
   try {
     // Calcula la fecha límite (hace 30 días)
-    const fechaLimite = moment().subtract(30, "days").format("MM-DD-YYYY");
+    // Obtén la fecha de hoy en el formato adecuado
+    const fechaHoy = moment().format("YYYY-MM-DD");
 
-    // Obtén las propiedades que tienen una fecha de joindate anterior a la fecha límite
+    // Obtén las propiedades donde expire_date es igual a la fecha de hoy
     const propiedadesExpiradas = await db("propiedades").where(
-      "joindate",
-      ">",
-      fechaLimite
+      "expire_date",
+      fechaHoy
     );
 
     // Elimina las propiedades expiradas y sus imágenes asociadas

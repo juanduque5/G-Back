@@ -55,6 +55,15 @@ exports.postProperties = async (req, res, next) => {
   const lat = req.body.lat;
   const lng = req.body.lng;
   const currentDate = moment().format("MM-DD-YYYY");
+  const countProperties = await Properties.countProperties(user_id);
+  let expireDate;
+  if (countProperties.freeplan) {
+    // Si countProperties.freeplan es verdadero (true), calcular la fecha de expiración para 30 días
+    expireDate = moment().add(30, "days");
+  } else {
+    // Si countProperties.freeplan es falso (false), calcular la fecha de expiración para 60 días
+    expireDate = moment().add(60, "days");
+  }
 
   try {
     const errors = validationResult(req);
@@ -83,7 +92,8 @@ exports.postProperties = async (req, res, next) => {
       precio,
       lat,
       lng,
-      currentDate
+      currentDate,
+      expireDate
     );
 
     if (!propertiesResult) {
@@ -287,6 +297,7 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
     }
 
     const countProperties = await Properties.countProperties(id);
+    let freeplan = countProperties.freeplan;
     let button = false;
     console.log("count", countProperties);
     //Deciding whether to disabled button or not
@@ -341,6 +352,7 @@ exports.getAllPropertiesByUser = async (req, res, next) => {
       social: social,
       user: user,
       button: button,
+      freeplan: freeplan,
     });
 
     console.log("propertiesById were successfully sent ");

@@ -50,6 +50,7 @@ exports.postSignup = async (req, res, next) => {
   const first = req.body.first.toLowerCase();
   const last = req.body.last.toLowerCase();
   const language = req.headers["accept-language"] || "en"; // Obtener el idioma preferido del usuario de los encabezados de la solicitud
+  const currentDate = moment().format("YYYY-MM-DD");
 
   try {
     // Verificar si el correo electrónico ya está registrado
@@ -75,6 +76,7 @@ exports.postSignup = async (req, res, next) => {
       first: first,
       last: last,
       password: hashedPassword,
+      joindate: currentDate,
     });
 
     const id = newUser.id;
@@ -153,6 +155,19 @@ exports.postLogin = async (req, res, next) => {
     // const countProperties = await Properties.countProperties(id);
     // let freeplan = countProperties.freeplan;
 
+    const countProperties = await Properties.countProperties(id);
+    let button = false;
+    //  console.log("count", countProperties);
+    //Deciding whether to disabled button or not
+    if (
+      (countProperties.freeplan && countProperties.freeproperties > 0) ||
+      (countProperties.proplan && countProperties.availableproperties > 0)
+    ) {
+      button = false;
+    } else {
+      button = true;
+    }
+
     console.log(dataProfile);
 
     if (!dataProfile) {
@@ -203,6 +218,7 @@ exports.postLogin = async (req, res, next) => {
       email: user.email,
       imageURL: imageUrl,
       profile: dataProfile,
+      button: button,
     });
   } catch (err) {
     // Manejo de errores
