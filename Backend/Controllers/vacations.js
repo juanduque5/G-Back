@@ -33,66 +33,54 @@ const s3 = new S3Client({
 });
 
 exports.getSearchProperty = async (req, res, next) => {
-  // const InDate = moment(req.query.checkInDate);
-  // const OutDate = moment(req.query.checkOutDate);
-  // const checkInDate = InDate.format("MM-DD-YYYY");
-  // const checkOutDate = OutDate.format("MM-DD-YYYY");
   let checkInDate = false;
   let checkOutDate = false;
 
-  if (req.query.checkInDate) {
+  if (
+    req.query.checkInDate &&
+    moment(req.query.checkInDate, moment.ISO_8601, true).isValid()
+  ) {
     const InDate = moment(req.query.checkInDate);
-    checkInDate = InDate.isValid() ? InDate.format("MM-DD-YYYY") : false;
+    checkInDate = InDate.format("MM-DD-YYYY");
   }
 
-  if (req.query.checkOutDate) {
+  if (
+    req.query.checkOutDate &&
+    moment(req.query.checkOutDate, moment.ISO_8601, true).isValid()
+  ) {
     const OutDate = moment(req.query.checkOutDate);
-    checkOutDate = OutDate.isValid() ? OutDate.format("MM-DD-YYYY") : false;
+    checkOutDate = OutDate.format("MM-DD-YYYY");
   }
+
   const location = req.query.location;
   const guests = !isNaN(req.query.guests) ? req.query.guests : false;
-  const date = req.query.checkOutDate ? true : false;
-  console.log(date);
-  console.log(location, guests);
 
-  console.log("CheckInDate:", checkInDate);
-
-  console.log("CheckOutDate:", checkOutDate);
+  console.log(checkInDate, checkOutDate);
 
   try {
-    const search = await Properties.vacationSearch(
-      location,
-      guests,
-      checkInDate,
-      checkOutDate
-    );
+    const search = await Properties.vacationSearch(location, guests);
+    // Lógica adicional según sea necesario
 
-    console.log("search vacation", search);
-    // if (!search) {
-    //   const error = new Error("ERROR: search vacation");
-    //   error.statusCode = 500;
-    //   throw error;
-    // }
-    // const newProperties = search.filter((obj, index) => {
-    //   return index === search.findIndex((index) => index.id === obj.id);
-    // });
+    // console.log("Properties2", allProperties2);
+    const newProperties = search.filter((obj, index) => {
+      return index === search.findIndex((index) => index.id === obj.id);
+    });
+    // console.log("all properties API:", newProperties);
+    const updatedProperties = newProperties.map((property) => {
+      return {
+        ...property,
+        imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
+      };
+    });
 
-    // const updatedProperties = newProperties.map((property) => {
-    //   return {
-    //     ...property,
-    //     imageURL: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${property.imageURL}`,
-    //   };
-    // });
-
-    // res.status(200).json({
-    //   data: updatedProperties,
-    // });
+    res.status(200).json({
+      message: "All property data successfully sent",
+      data: updatedProperties,
+    });
   } catch (error) {
-    console.error("Error vacation search:", error);
-    // Manejar el error según sea necesario
-    return res
-      .status(500)
-      .json({ message: "Error searching vacations properties filter" });
+    // Manejar errores adecuadamente
+    console.error("Error during property search:", error);
+    res.status(500).send("Error searching properties");
   }
 };
 

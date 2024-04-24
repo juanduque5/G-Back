@@ -941,3 +941,46 @@ exports.deletePropertyById = async (req, res, next) => {
       .json({ message: "Error en el servidor" });
   }
 };
+
+exports.getVacationsInfoById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    console.log(id);
+    const propertyById = await Properties.vacationsPropertyById(id);
+    // console.log("propertyById", propertyById[0].user_id);
+    const userId = propertyById[0].user_id;
+
+    const social = await User.profileSocial(userId);
+
+    if (!propertyById) {
+      const error = new Error("ERROR: PropertyById");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    // console.log("propertyById", propertyById);
+    const imageUrl = await Properties.searchImagesByIdVacations(id);
+
+    const updatedUrls = imageUrl.map((urlObject) => urlObject["imageURL."]);
+    // console.log("image URLs:", updatedUrls);
+
+    const updatedData = updatedUrls.map((url) => {
+      return {
+        ...propertyById,
+        imageUrl: `https://juanma-user-s3.s3.us-west-1.amazonaws.com/${url}`,
+      };
+    });
+    // console.log("up", updatedData);
+    res.status(200).json({
+      message: "PropertyById successfully sento to FRONT END",
+      data: updatedData,
+      social: social,
+    });
+  } catch (error) {
+    console.error("Error in catch block propertyById:", error);
+    if (!error.statusCode) {
+      error.statusCode = 500;
+      next(error);
+    }
+  }
+};

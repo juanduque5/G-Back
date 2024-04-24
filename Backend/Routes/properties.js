@@ -67,6 +67,8 @@ router.get("/info/:token/:userId", properController.getInfo);
 
 router.get("/infoById/:id", properController.getInfoById);
 
+router.get("/vacationsInfoById/:id", properController.getVacationsInfoById);
+
 router.get("/allPropertiesByUser/:id", properController.getAllPropertiesByUser);
 
 router.get("/maps/api/place/autocomplete/json", properController.getMap);

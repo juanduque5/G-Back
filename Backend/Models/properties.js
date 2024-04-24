@@ -387,6 +387,21 @@ Properties.deleteImagesEditVacations = (id, url) => {
     });
 };
 
+//vacation
+Properties.vacationsPropertyById = (id) => {
+  // Encuentra la propiedad por su ID
+  return db("vacations")
+    .where("id", id)
+    .then((data) => {
+      // Aquí tendrás acceso a todas las columnas de propiedades
+      return data;
+    })
+    .catch((error) => {
+      console.error("ERROR: properties by id ", error);
+      throw error;
+    });
+};
+
 Properties.propertiesAddFavoritesByUserId = (userId, propertyId) => {
   return db("favoritos")
     .returning("*")
@@ -859,44 +874,46 @@ Properties.updatePropertiesInc = (userId) => {
 };
 
 //vacationSearch
-Properties.vacationSearch = (location, guests, checkInDate, checkOutDate) => {
-  return db
-    .distinct()
-    .select("vacations.*", "imagenesvacations.url as imageURL") // Aquí se agrega la selección de columnas
-    .from("vacations")
-    .leftJoin(
-      "imagenesvacations",
-      "vacations.id",
-      "imagenesvacations.vacations_id"
-    )
-    .where((builder) => {
-      if (location.trim() !== "") {
-        builder.where("municipio", location);
-      }
-    })
-    .andWhere(function () {
-      if (guests !== false) {
-        this.where("habitaciones", guests);
-      }
-    })
-    .andWhere(function () {
-      if (checkInDate !== false) {
-        this.where("checkin", checkInDate);
-      }
-    })
-    .andWhere(function () {
-      if (checkOutDate !== false) {
-        this.where("checkout", checkOutDate);
-      }
-    })
-    .then((data) => {
-      console.log(data);
-      return data;
-    })
-    .catch((error) => {
-      console.error("ERROR: homeSearch");
-      throw error;
-    });
+Properties.vacationSearch = (location, guests) => {
+  return (
+    db
+      .distinct()
+      .select("vacations.*", "imagenesvacations.url as imageURL") // Aquí se agrega la selección de columnas
+      .from("vacations")
+      .leftJoin(
+        "imagenesvacations",
+        "vacations.id",
+        "imagenesvacations.vacations_id"
+      )
+      .where((builder) => {
+        if (location.trim() !== "") {
+          builder.where("municipio", location);
+        }
+      })
+      .andWhere(function () {
+        if (guests !== false) {
+          this.where("habitaciones", guests);
+        }
+      })
+      // .orWhere(function () {
+      //   if (checkInDate !== false) {
+      //     this.where("checkin", checkInDate);
+      //   }
+      // })
+      // .orWhere(function () {
+      //   if (checkOutDate !== false) {
+      //     this.where("checkout", checkOutDate);
+      //   }
+      // })
+      .then((data) => {
+        console.log(data);
+        return data;
+      })
+      .catch((error) => {
+        console.error("ERROR: homeSearch");
+        throw error;
+      })
+  );
 };
 
 module.exports = Properties;
