@@ -817,6 +817,23 @@ Properties.updateProPlanToTrue = (userId) => {
     });
 };
 
+//
+Properties.updateBook = (propertyId) => {
+  return db("vacations")
+    .where("id", propertyId)
+    .update({ booked: true })
+    .then(() => {
+      console.log(
+        "¡Actualización exitosa del campo proplan a true para el usuario con ID:",
+        propertyId
+      );
+    })
+    .catch((error) => {
+      console.error("Error al actualizar proplan:", error);
+      throw error;
+    });
+};
+
 //decrement numproperties
 Properties.updatePropertiesInc = (userId) => {
   return db.transaction(async (trx) => {

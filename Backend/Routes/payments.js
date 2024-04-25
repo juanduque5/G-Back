@@ -7,6 +7,8 @@ const router = express.Router();
 
 // Definir otras rutas según sea necesario
 router.post("/order/:id", authController.postOrder);
+
+router.post("/ordervacation/:id/:userId", authController.postOrderVacation);
 router.get("/allPayments", authController.getAllPayments);
 
 module.exports = router;

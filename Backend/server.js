@@ -34,10 +34,17 @@ app.post("/process_recurrente", async (req, res) => {
   const productId = req.body.product.id;
 
   console.log("Body", req.body);
+  const productName = req.body.products[0].name;
+
+  // Verificar si el nombre del primer producto es igual a "vacation"
+  if (productName.toLowerCase() === "vacation") {
+    // No hacer nada y retornar una respuesta exitosa
+    return res.status(200).json("No se requiere acción para 'vacation'");
+  }
   switch (req.body.event_type) {
     case "payment_intent.succeeded":
       const success = await User.updatePayment(productId, "complete");
-      const updatePro = await Properties.updateProPlanToTrue210(
+      const updatePro = await Properties.updateProPlanToTrue(
         success.updated_user_id
       );
       console.log(
@@ -49,6 +56,40 @@ app.post("/process_recurrente", async (req, res) => {
 
     case "payment_intent.failed":
       const failed = await User.updatePayment(productId, "failed");
+      console.log("Estado del pago actualizado:", failed.payment_status);
+      return res.status(200).json("Pago fallido");
+
+    default:
+      return res.status(400).json("Tipo de evento no reconocido");
+  }
+});
+
+app.post("/process_recurrente_vacation", async (req, res) => {
+  const productId = req.body.product.id;
+
+  console.log("Body", req.body);
+  const productName = req.body.products[0].name;
+
+  // Verificar si el nombre del primer producto es igual a "vacation"
+  if (productName.toLowerCase() === "propiedades") {
+    // No hacer nada y retornar una respuesta exitosa
+    return res.status(200).json("No se requiere acción para 'vacation'");
+  }
+  switch (req.body.event_type) {
+    case "payment_intent.succeeded":
+      const success = await User.updatePaymentVacation(productId, "complete");
+      const updatePro = await Properties.updateBook(
+        success.updated_property_id
+      );
+      console.log(
+        "Estado del pago actualizado:",
+        success.payment_status,
+        updatePro
+      );
+      return res.status(200).json("Pago completado");
+
+    case "payment_intent.failed":
+      const failed = await User.updatePaymentVacation(productId, "failed");
       console.log("Estado del pago actualizado:", failed.payment_status);
       return res.status(200).json("Pago fallido");
 
